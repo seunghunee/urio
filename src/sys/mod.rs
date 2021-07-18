@@ -20,6 +20,28 @@ pub struct io_uring_params {
     pub cq_off: io_cqring_offsets,
 }
 
+// io_uring_params flags
+pub const IORING_SETUP_IOPOLL: u32 = 1; // io_context is polled
+pub const IORING_SETUP_SQPOLL: u32 = 2; // SQ poll thread
+pub const IORING_SETUP_SQ_AFF: u32 = 4; // sq_thread_cpu is valid
+pub const IORING_SETUP_CQSIZE: u32 = 8; // app defines CQ size
+pub const IORING_SETUP_CLAMP: u32 = 16; // clamp SQ/CQ ring sizes
+pub const IORING_SETUP_ATTACH_WQ: u32 = 32; // attach to existing wq
+pub const IORING_SETUP_R_DISABLED: u32 = 64; // start with ring disabled
+
+// io_uring_params features
+pub const IORING_FEAT_SINGLE_MMAP: u32 = 1;
+pub const IORING_FEAT_NODROP: u32 = 2;
+pub const IORING_FEAT_SUBMIT_STABLE: u32 = 4;
+pub const IORING_FEAT_RW_CUR_POS: u32 = 8;
+pub const IORING_FEAT_CUR_PERSONALITY: u32 = 16;
+pub const IORING_FEAT_FAST_POLL: u32 = 32;
+pub const IORING_FEAT_POLL_32BITS: u32 = 64;
+pub const IORING_FEAT_SQPOLL_NONFIXED: u32 = 128;
+pub const IORING_FEAT_EXT_ARG: u32 = 256;
+pub const IORING_FEAT_NATIVE_WORKERS: u32 = 512;
+pub const IORING_FEAT_RSRC_TAGS: u32 = 1024;
+
 /// Filled with the offset for mmap(2)
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
