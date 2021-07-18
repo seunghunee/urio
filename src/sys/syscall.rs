@@ -15,11 +15,11 @@ pub unsafe fn io_uring_setup(entries: c_uint, p: *mut io_uring_params) -> c_int 
 
 #[cfg(test)]
 mod tests {
-    use libc::{EFAULT, EINVAL};
+    use libc::{sysconf, EFAULT, EINVAL, _SC_NPROCESSORS_CONF};
     use std::{io::Error, ptr};
 
     use super::*;
-    use crate::sys::IORING_SETUP_SQ_AFF;
+    use crate::sys::{IORING_SETUP_SQPOLL, IORING_SETUP_SQ_AFF};
 
     #[test]
     fn io_uring_setup_no_entries() {
@@ -46,6 +46,16 @@ mod tests {
     fn io_uring_setup_bind_poll_thread_to_cpu_without_poll_thread() {
         let mut p: io_uring_params = Default::default();
         p.flags = IORING_SETUP_SQ_AFF;
+        try_io_uring_setup_err(1, &mut p, EINVAL);
+    }
+
+    #[test]
+    // require root privilege
+    #[ignore]
+    fn io_uring_setup_bind_poll_thread_to_invalid_cpu() {
+        let mut p: io_uring_params = Default::default();
+        p.flags = IORING_SETUP_SQPOLL | IORING_SETUP_SQ_AFF;
+        p.sq_thread_cpu = unsafe { sysconf(_SC_NPROCESSORS_CONF) as _ };
         try_io_uring_setup_err(1, &mut p, EINVAL);
     }
 
