@@ -6,7 +6,7 @@ use libc::{__u32, __u64};
 
 /// Passed in for io_uring_setup(2). Copied back with updated info on success
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_params {
     pub sq_entries: __u32,
     pub cq_entries: __u32,
@@ -22,7 +22,7 @@ pub struct io_uring_params {
 
 /// Filled with the offset for mmap(2)
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_sqring_offsets {
     pub head: __u32,
     pub tail: __u32,
@@ -37,7 +37,7 @@ pub struct io_sqring_offsets {
 
 /// Filled with the offset for mmap(2)
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_cqring_offsets {
     pub head: __u32,
     pub tail: __u32,
