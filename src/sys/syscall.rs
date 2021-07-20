@@ -15,7 +15,7 @@ pub unsafe fn io_uring_setup(entries: c_uint, p: *mut io_uring_params) -> c_int 
 
 #[cfg(test)]
 mod tests {
-    use libc::{sysconf, EFAULT, EINVAL, _SC_NPROCESSORS_CONF};
+    use libc::{read, sysconf, EFAULT, EINVAL, _SC_NPROCESSORS_CONF};
     use std::{io::Error, ptr};
 
     use super::*;
@@ -64,5 +64,16 @@ mod tests {
         assert_eq!(ret, -1);
         let raw_os_err = Error::last_os_error().raw_os_error().unwrap();
         assert_eq!(raw_os_err, err);
+    }
+
+    #[test]
+    fn io_uring_setup_read_on_io_uring_fd() {
+        let mut p: io_uring_params = Default::default();
+        let fd = unsafe { io_uring_setup(1, &mut p) };
+        assert!(fd >= 0);
+
+        let mut buf = [0; 4096];
+        let ret = unsafe { read(fd, buf.as_mut_ptr() as _, 4096) };
+        assert!(ret < 0);
     }
 }
