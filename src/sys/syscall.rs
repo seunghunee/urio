@@ -1,7 +1,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(clippy::missing_safety_doc)]
 
-use libc::{c_int, c_uint, sigset_t, syscall, SYS_io_uring_enter, SYS_io_uring_setup};
+use libc::*;
 use std::mem::size_of;
 
 use super::io_uring_params;
@@ -30,10 +30,9 @@ pub unsafe fn io_uring_enter(
 
 #[cfg(test)]
 mod tests {
-    use libc::{read, sysconf, EBADF, EFAULT, EINVAL, EOPNOTSUPP, _SC_NPROCESSORS_CONF};
     use std::{
         io::Error,
-        ptr::{self, null},
+        ptr::{null, null_mut},
     };
 
     use super::*;
@@ -46,7 +45,7 @@ mod tests {
     }
     #[test]
     fn io_uring_setup_null_ptr() {
-        assert_err(|| unsafe { io_uring_setup(1, ptr::null_mut()) }, EFAULT);
+        assert_err(|| unsafe { io_uring_setup(1, null_mut()) }, EFAULT);
     }
     #[test]
     fn io_uring_setup_non_zero_resv() {
