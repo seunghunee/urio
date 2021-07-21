@@ -30,8 +30,11 @@ pub unsafe fn io_uring_enter(
 
 #[cfg(test)]
 mod tests {
-    use libc::{read, sysconf, EFAULT, EINVAL, _SC_NPROCESSORS_CONF};
-    use std::{io::Error, ptr};
+    use libc::{read, sysconf, EBADF, EFAULT, EINVAL, EOPNOTSUPP, _SC_NPROCESSORS_CONF};
+    use std::{
+        io::Error,
+        ptr::{self, null},
+    };
 
     use super::*;
     use crate::sys::{IORING_SETUP_SQPOLL, IORING_SETUP_SQ_AFF};
@@ -90,5 +93,28 @@ mod tests {
         let mut buf = [0; 4096];
         let ret = unsafe { read(fd, buf.as_mut_ptr() as _, 4096) };
         assert!(ret < 0);
+    }
+
+    #[test]
+    fn io_uring_enter_invalid_fd() {
+        try_io_uring_enter_err(-1, 0, 0, 0, null(), EBADF);
+    }
+    #[test]
+    fn io_uring_enter_valid_non_ring_fd() {
+        try_io_uring_enter_err(0, 0, 0, 0, null(), EOPNOTSUPP);
+    }
+
+    fn try_io_uring_enter_err(
+        fd: c_int,
+        to_submit: c_uint,
+        min_complete: c_uint,
+        flags: c_uint,
+        sig: *const sigset_t,
+        err: c_int,
+    ) {
+        let ret = unsafe { io_uring_enter(fd, to_submit, min_complete, flags, sig) };
+        assert_eq!(ret, -1);
+        let raw_os_err = Error::last_os_error().raw_os_error().unwrap();
+        assert_eq!(raw_os_err, err);
     }
 }
