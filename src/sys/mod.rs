@@ -42,6 +42,11 @@ pub const IORING_FEAT_EXT_ARG: u32 = 256;
 pub const IORING_FEAT_NATIVE_WORKERS: u32 = 512;
 pub const IORING_FEAT_RSRC_TAGS: u32 = 1024;
 
+// Magic offsets for the application to mmap the data it needs
+pub const IORING_OFF_SQ_RING: off_t = 0;
+pub const IORING_OFF_CQ_RING: off_t = 134217728;
+pub const IORING_OFF_SQES: off_t = 268435456;
+
 /// Filled with the offset for mmap(2)
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
