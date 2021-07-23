@@ -2,7 +2,7 @@
 
 pub mod syscall;
 
-use libc::{__u32, __u64};
+use libc::*;
 
 /// Passed in for io_uring_setup(2). Copied back with updated info on success
 #[repr(C)]
@@ -70,6 +70,15 @@ pub struct io_cqring_offsets {
     pub flags: __u32,
     pub resv1: __u32,
     pub resv2: __u64,
+}
+
+// IO completion data structure (Completion Queue Entry)
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct io_uring_cqe {
+    pub user_data: __u64, // io_uring_sqe.data submission passed back
+    pub res: __s32,       // result code for this event
+    pub flags: __u32,
 }
 
 #[cfg(test)]
@@ -193,7 +202,6 @@ mod tests {
             )
         );
     }
-
     #[test]
     fn bindgen_test_layout_io_sqring_offsets() {
         assert_eq!(
@@ -299,7 +307,6 @@ mod tests {
             )
         );
     }
-
     #[test]
     fn bindgen_test_layout_io_cqring_offsets() {
         assert_eq!(
@@ -402,6 +409,49 @@ mod tests {
                 stringify!(io_cqring_offsets),
                 "::",
                 stringify!(resv2)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_cqe() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_cqe>(),
+            16usize,
+            concat!("Size of: ", stringify!(io_uring_cqe))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_cqe>(),
+            8usize,
+            concat!("Alignment of ", stringify!(io_uring_cqe))
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_cqe>())).user_data as *const _ as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_cqe),
+                "::",
+                stringify!(user_data)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_cqe>())).res as *const _ as usize },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_cqe),
+                "::",
+                stringify!(res)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_cqe>())).flags as *const _ as usize },
+            12usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_cqe),
+                "::",
+                stringify!(flags)
             )
         );
     }
