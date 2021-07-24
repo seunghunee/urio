@@ -23,26 +23,26 @@ pub struct io_uring_params {
 }
 
 // io_uring_params.flags
-pub const IORING_SETUP_IOPOLL: u32 = 1; // io_context is polled
-pub const IORING_SETUP_SQPOLL: u32 = 2; // SQ poll thread
-pub const IORING_SETUP_SQ_AFF: u32 = 4; // sq_thread_cpu is valid
-pub const IORING_SETUP_CQSIZE: u32 = 8; // app defines CQ size
-pub const IORING_SETUP_CLAMP: u32 = 16; // clamp SQ/CQ ring sizes
-pub const IORING_SETUP_ATTACH_WQ: u32 = 32; // attach to existing wq
-pub const IORING_SETUP_R_DISABLED: u32 = 64; // start with ring disabled
+pub const IORING_SETUP_IOPOLL: __u32 = 1 << 0; // io_context is polled
+pub const IORING_SETUP_SQPOLL: __u32 = 1 << 1; // SQ poll thread
+pub const IORING_SETUP_SQ_AFF: __u32 = 1 << 2; // sq_thread_cpu is valid
+pub const IORING_SETUP_CQSIZE: __u32 = 1 << 3; // app defines CQ size
+pub const IORING_SETUP_CLAMP: __u32 = 1 << 4; // clamp SQ/CQ ring sizes
+pub const IORING_SETUP_ATTACH_WQ: __u32 = 1 << 5; // attach to existing wq
+pub const IORING_SETUP_R_DISABLED: __u32 = 1 << 6; // start with ring disabled
 
 // io_uring_params.features
-pub const IORING_FEAT_SINGLE_MMAP: u32 = 1;
-pub const IORING_FEAT_NODROP: u32 = 2;
-pub const IORING_FEAT_SUBMIT_STABLE: u32 = 4;
-pub const IORING_FEAT_RW_CUR_POS: u32 = 8;
-pub const IORING_FEAT_CUR_PERSONALITY: u32 = 16;
-pub const IORING_FEAT_FAST_POLL: u32 = 32;
-pub const IORING_FEAT_POLL_32BITS: u32 = 64;
-pub const IORING_FEAT_SQPOLL_NONFIXED: u32 = 128;
-pub const IORING_FEAT_EXT_ARG: u32 = 256;
-pub const IORING_FEAT_NATIVE_WORKERS: u32 = 512;
-pub const IORING_FEAT_RSRC_TAGS: u32 = 1024;
+pub const IORING_FEAT_SINGLE_MMAP: __u32 = 1 << 0;
+pub const IORING_FEAT_NODROP: __u32 = 1 << 1;
+pub const IORING_FEAT_SUBMIT_STABLE: __u32 = 1 << 2;
+pub const IORING_FEAT_RW_CUR_POS: __u32 = 1 << 3;
+pub const IORING_FEAT_CUR_PERSONALITY: __u32 = 1 << 4;
+pub const IORING_FEAT_FAST_POLL: __u32 = 1 << 5;
+pub const IORING_FEAT_POLL_32BITS: __u32 = 1 << 6;
+pub const IORING_FEAT_SQPOLL_NONFIXED: __u32 = 1 << 7;
+pub const IORING_FEAT_EXT_ARG: __u32 = 1 << 8;
+pub const IORING_FEAT_NATIVE_WORKERS: __u32 = 1 << 9;
+pub const IORING_FEAT_RSRC_TAGS: __u32 = 1 << 10;
 
 // Magic offsets for the application to mmap the data it needs
 pub const IORING_OFF_SQ_RING: off_t = 0;
@@ -269,15 +269,15 @@ pub enum OpCode {
 }
 
 // sqe.fsync_flags
-pub const IORING_FSYNC_DATASYNC: u32 = 1;
+pub const IORING_FSYNC_DATASYNC: __u32 = 1 << 0;
 
 // sqe.timeout_flags
-pub const IORING_TIMEOUT_ABS: u32 = 1;
-pub const IORING_TIMEOUT_UPDATE: u32 = 2;
+pub const IORING_TIMEOUT_ABS: __u32 = 1 << 0;
+pub const IORING_TIMEOUT_UPDATE: __u32 = 1 << 1;
 
 // sqe.splice_flags
 // extends splice(2) flags
-pub const SPLICE_F_FD_IN_FIXED: u32 = 2147483648; // the last bit of __u32
+pub const SPLICE_F_FD_IN_FIXED: __u32 = 1 << 31; // the last bit of __u32
 
 // POLL_ADD flags. Note that since sqe->poll_events is the flag space, the
 // command flags for POLL_ADD are stored in sqe->len.
@@ -288,9 +288,9 @@ pub const SPLICE_F_FD_IN_FIXED: u32 = 2147483648; // the last bit of __u32
 //
 // IORING_POLL_UPDATE		Update existing poll request, matching
 //				sqe->addr as the old user_data field.
-pub const IORING_POLL_ADD_MULTI: u32 = 1;
-pub const IORING_POLL_UPDATE_EVENTS: u32 = 2;
-pub const IORING_POLL_UPDATE_USER_DATA: u32 = 4;
+pub const IORING_POLL_ADD_MULTI: __u32 = 1 << 0;
+pub const IORING_POLL_UPDATE_EVENTS: __u32 = 1 << 1;
+pub const IORING_POLL_UPDATE_USER_DATA: __u32 = 1 << 2;
 
 // IO completion data structure (Completion Queue Entry)
 #[repr(C)]
@@ -302,8 +302,8 @@ pub struct io_uring_cqe {
 }
 
 // cqe.flags
-pub const IORING_CQE_F_BUFFER: u32 = 1; // the upper 16 bits are the buffer ID
-pub const IORING_CQE_F_MORE: u32 = 2; // parent SQE will generate more CQE entries
+pub const IORING_CQE_F_BUFFER: __u32 = 1 << 0; // the upper 16 bits are the buffer ID
+pub const IORING_CQE_F_MORE: __u32 = 1 << 1; // parent SQE will generate more CQE entries
 pub const IORING_CQE_BUFFER_SHIFT: ::std::os::raw::c_uint = 16;
 
 #[cfg(test)]
