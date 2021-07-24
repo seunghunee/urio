@@ -1,4 +1,6 @@
 #![allow(deref_nullptr)]
+#![allow(nonstandard_style)]
+#![allow(unaligned_references)]
 
 pub mod syscall;
 
@@ -20,7 +22,7 @@ pub struct io_uring_params {
     pub cq_off: io_cqring_offsets,
 }
 
-// io_uring_params flags
+// io_uring_params.flags
 pub const IORING_SETUP_IOPOLL: u32 = 1; // io_context is polled
 pub const IORING_SETUP_SQPOLL: u32 = 2; // SQ poll thread
 pub const IORING_SETUP_SQ_AFF: u32 = 4; // sq_thread_cpu is valid
@@ -29,7 +31,7 @@ pub const IORING_SETUP_CLAMP: u32 = 16; // clamp SQ/CQ ring sizes
 pub const IORING_SETUP_ATTACH_WQ: u32 = 32; // attach to existing wq
 pub const IORING_SETUP_R_DISABLED: u32 = 64; // start with ring disabled
 
-// io_uring_params features
+// io_uring_params.features
 pub const IORING_FEAT_SINGLE_MMAP: u32 = 1;
 pub const IORING_FEAT_NODROP: u32 = 2;
 pub const IORING_FEAT_SUBMIT_STABLE: u32 = 4;
@@ -77,6 +79,219 @@ pub struct io_cqring_offsets {
     pub resv2: __u64,
 }
 
+// IO submission data structure (Submission Queue Entry)
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct io_uring_sqe {
+    pub opcode: __u8,  // type of operation for this sqe
+    pub flags: __u8,   // IOSQE_ flags
+    pub ioprio: __u16, // ioprio for the request
+    pub fd: __s32,     // file descriptor to do IO on
+    pub __bindgen_anon_1: io_uring_sqe__bindgen_ty_1,
+    pub __bindgen_anon_2: io_uring_sqe__bindgen_ty_2,
+    pub len: __u32, // buffer size or number of iovecs
+    pub __bindgen_anon_3: io_uring_sqe__bindgen_ty_3,
+    pub user_data: __u64, // data to be passed back at completion time
+    pub __bindgen_anon_4: io_uring_sqe__bindgen_ty_4,
+}
+impl Default for io_uring_sqe {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union io_uring_sqe__bindgen_ty_1 {
+    pub off: __u64, //offset into file
+    pub addr2: __u64,
+}
+impl Default for io_uring_sqe__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union io_uring_sqe__bindgen_ty_2 {
+    pub addr: __u64, // pointer to buffer or iovecs
+    pub splice_off_in: __u64,
+}
+impl Default for io_uring_sqe__bindgen_ty_2 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+pub type __kernel_rwf_t = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union io_uring_sqe__bindgen_ty_3 {
+    pub rw_flags: __kernel_rwf_t,
+    pub fsync_flags: __u32,
+    pub poll_events: __u16,   // compatibility
+    pub poll32_events: __u32, // word-reversed for BE
+    pub sync_range_flags: __u32,
+    pub msg_flags: __u32,
+    pub timeout_flags: __u32,
+    pub accept_flags: __u32,
+    pub cancel_flags: __u32,
+    pub open_flags: __u32,
+    pub statx_flags: __u32,
+    pub fadvise_advice: __u32,
+    pub splice_flags: __u32,
+    pub rename_flags: __u32,
+    pub unlink_flags: __u32,
+    pub hardlink_flags: __u32,
+}
+impl Default for io_uring_sqe__bindgen_ty_3 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union io_uring_sqe__bindgen_ty_4 {
+    pub __bindgen_anon_1: io_uring_sqe__bindgen_ty_4__bindgen_ty_1,
+    pub __pad2: [__u64; 3usize],
+}
+impl Default for io_uring_sqe__bindgen_ty_4 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct io_uring_sqe__bindgen_ty_4__bindgen_ty_1 {
+    pub __bindgen_anon_1: io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1,
+    // personality to use, if used
+    pub personality: __u16,
+    pub splice_fd_in: __s32,
+}
+impl Default for io_uring_sqe__bindgen_ty_4__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C, packed)]
+#[derive(Copy, Clone)]
+// pack this to avoid bogus arm OABI complaints
+pub union io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1 {
+    pub buf_index: __u16, // index into fixed buffers, if used
+    pub buf_group: __u16, // for grouped buffer selection
+}
+impl Default for io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+
+// sqe.flags
+pub const IOSQE_FIXED_FILE: __u8 = 1 << 0; // use fixed fileset
+pub const IOSQE_IO_DRAIN: __u8 = 1 << 1; // issue after inflight IO
+pub const IOSQE_IO_LINK: __u8 = 1 << 2; // links next sqe
+pub const IOSQE_IO_HARDLINK: __u8 = 1 << 3; // like LINK, but stronger
+pub const IOSQE_ASYNC: __u8 = 1 << 4; // always go async
+pub const IOSQE_BUFFER_SELECT: __u8 = 1 << 5; // select buffer from sqe->buf_group
+
+#[repr(C)]
+#[derive(Debug)]
+pub enum OpCode {
+    IORING_OP_NOP,
+    IORING_OP_READV,
+    IORING_OP_WRITEV,
+    IORING_OP_FSYNC,
+    IORING_OP_READ_FIXED,
+    IORING_OP_WRITE_FIXED,
+    IORING_OP_POLL_ADD,
+    IORING_OP_POLL_REMOVE,
+    IORING_OP_SYNC_FILE_RANGE,
+    IORING_OP_SENDMSG,
+    IORING_OP_RECVMSG,
+    IORING_OP_TIMEOUT,
+    IORING_OP_TIMEOUT_REMOVE,
+    IORING_OP_ACCEPT,
+    IORING_OP_ASYNC_CANCEL,
+    IORING_OP_LINK_TIMEOUT,
+    IORING_OP_CONNECT,
+    IORING_OP_FALLOCATE,
+    IORING_OP_OPENAT,
+    IORING_OP_CLOSE,
+    IORING_OP_FILES_UPDATE,
+    IORING_OP_STATX,
+    IORING_OP_READ,
+    IORING_OP_WRITE,
+    IORING_OP_FADVISE,
+    IORING_OP_MADVISE,
+    IORING_OP_SEND,
+    IORING_OP_RECV,
+    IORING_OP_OPENAT2,
+    IORING_OP_EPOLL_CTL,
+    IORING_OP_SPLICE,
+    IORING_OP_PROVIDE_BUFFERS,
+    IORING_OP_REMOVE_BUFFERS,
+    IORING_OP_TEE,
+    IORING_OP_SHUTDOWN,
+    IORING_OP_RENAMEAT,
+    IORING_OP_UNLINKAT,
+    IORING_OP_MKDIRAT,
+    IORING_OP_SYMLINKAT,
+    IORING_OP_LINKAT,
+
+    /* this goes last, obviously */
+    IORING_OP_LAST,
+}
+
+// sqe.fsync_flags
+pub const IORING_FSYNC_DATASYNC: u32 = 1;
+
+// sqe.timeout_flags
+pub const IORING_TIMEOUT_ABS: u32 = 1;
+pub const IORING_TIMEOUT_UPDATE: u32 = 2;
+
+// sqe.splice_flags
+// extends splice(2) flags
+pub const SPLICE_F_FD_IN_FIXED: u32 = 2147483648; // the last bit of __u32
+
+// POLL_ADD flags. Note that since sqe->poll_events is the flag space, the
+// command flags for POLL_ADD are stored in sqe->len.
+//
+// IORING_POLL_ADD_MULTI	Multishot poll. Sets IORING_CQE_F_MORE if
+//				the poll handler will continue to report
+//				CQEs on behalf of the same SQE.
+//
+// IORING_POLL_UPDATE		Update existing poll request, matching
+//				sqe->addr as the old user_data field.
+pub const IORING_POLL_ADD_MULTI: u32 = 1;
+pub const IORING_POLL_UPDATE_EVENTS: u32 = 2;
+pub const IORING_POLL_UPDATE_USER_DATA: u32 = 4;
+
 // IO completion data structure (Completion Queue Entry)
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
@@ -86,12 +301,9 @@ pub struct io_uring_cqe {
     pub flags: __u32,
 }
 
-// cqe flags
-//
-// IORING_CQE_F_BUFFER	If set, the upper 16 bits are the buffer ID
-// IORING_CQE_F_MORE	If set, parent SQE will generate more CQE entries
-pub const IORING_CQE_F_BUFFER: u32 = 1;
-pub const IORING_CQE_F_MORE: u32 = 2;
+// cqe.flags
+pub const IORING_CQE_F_BUFFER: u32 = 1; // the upper 16 bits are the buffer ID
+pub const IORING_CQE_F_MORE: u32 = 2; // parent SQE will generate more CQE entries
 pub const IORING_CQE_BUFFER_SHIFT: ::std::os::raw::c_uint = 16;
 
 #[cfg(test)]
@@ -465,6 +677,489 @@ mod tests {
                 stringify!(io_uring_cqe),
                 "::",
                 stringify!(flags)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_sqe__bindgen_ty_1() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_sqe__bindgen_ty_1>(),
+            8usize,
+            concat!("Size of: ", stringify!(io_uring_sqe__bindgen_ty_1))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_sqe__bindgen_ty_1>(),
+            8usize,
+            concat!("Alignment of ", stringify!(io_uring_sqe__bindgen_ty_1))
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_1>())).off as *const _ as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_1),
+                "::",
+                stringify!(off)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_1>())).addr2 as *const _ as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_1),
+                "::",
+                stringify!(addr2)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_sqe__bindgen_ty_2() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_sqe__bindgen_ty_2>(),
+            8usize,
+            concat!("Size of: ", stringify!(io_uring_sqe__bindgen_ty_2))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_sqe__bindgen_ty_2>(),
+            8usize,
+            concat!("Alignment of ", stringify!(io_uring_sqe__bindgen_ty_2))
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_2>())).addr as *const _ as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_2),
+                "::",
+                stringify!(addr)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_2>())).splice_off_in as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_2),
+                "::",
+                stringify!(splice_off_in)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_sqe__bindgen_ty_3() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_sqe__bindgen_ty_3>(),
+            4usize,
+            concat!("Size of: ", stringify!(io_uring_sqe__bindgen_ty_3))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_sqe__bindgen_ty_3>(),
+            4usize,
+            concat!("Alignment of ", stringify!(io_uring_sqe__bindgen_ty_3))
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).rw_flags as *const _ as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(rw_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).fsync_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(fsync_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).poll_events as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(poll_events)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).poll32_events as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(poll32_events)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).sync_range_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(sync_range_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).msg_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(msg_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).timeout_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(timeout_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).accept_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(accept_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).cancel_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(cancel_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).open_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(open_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).statx_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(statx_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).fadvise_advice as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(fadvise_advice)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).splice_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(splice_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).rename_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(rename_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).unlink_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(unlink_flags)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_3>())).hardlink_flags as *const _
+                    as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_3),
+                "::",
+                stringify!(hardlink_flags)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1>(),
+            2usize,
+            concat!(
+                "Size of: ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1)
+            )
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1>(),
+            1usize,
+            concat!(
+                "Alignment of ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1>()))
+                    .buf_index as *const _ as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1),
+                "::",
+                stringify!(buf_index)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1>()))
+                    .buf_group as *const _ as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1__bindgen_ty_1),
+                "::",
+                stringify!(buf_group)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_sqe__bindgen_ty_4__bindgen_ty_1() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1>(),
+            8usize,
+            concat!(
+                "Size of: ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1)
+            )
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1>(),
+            4usize,
+            concat!(
+                "Alignment of ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1>())).personality
+                    as *const _ as usize
+            },
+            2usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1),
+                "::",
+                stringify!(personality)
+            )
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_4__bindgen_ty_1>())).splice_fd_in
+                    as *const _ as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_4__bindgen_ty_1),
+                "::",
+                stringify!(splice_fd_in)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_sqe__bindgen_ty_4() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_sqe__bindgen_ty_4>(),
+            24usize,
+            concat!("Size of: ", stringify!(io_uring_sqe__bindgen_ty_4))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_sqe__bindgen_ty_4>(),
+            8usize,
+            concat!("Alignment of ", stringify!(io_uring_sqe__bindgen_ty_4))
+        );
+        assert_eq!(
+            unsafe {
+                &(*(::std::ptr::null::<io_uring_sqe__bindgen_ty_4>())).__pad2 as *const _ as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe__bindgen_ty_4),
+                "::",
+                stringify!(__pad2)
+            )
+        );
+    }
+    #[test]
+    fn bindgen_test_layout_io_uring_sqe() {
+        assert_eq!(
+            ::std::mem::size_of::<io_uring_sqe>(),
+            64usize,
+            concat!("Size of: ", stringify!(io_uring_sqe))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<io_uring_sqe>(),
+            8usize,
+            concat!("Alignment of ", stringify!(io_uring_sqe))
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_sqe>())).opcode as *const _ as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe),
+                "::",
+                stringify!(opcode)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_sqe>())).flags as *const _ as usize },
+            1usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe),
+                "::",
+                stringify!(flags)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_sqe>())).ioprio as *const _ as usize },
+            2usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe),
+                "::",
+                stringify!(ioprio)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_sqe>())).fd as *const _ as usize },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe),
+                "::",
+                stringify!(fd)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_sqe>())).len as *const _ as usize },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe),
+                "::",
+                stringify!(len)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<io_uring_sqe>())).user_data as *const _ as usize },
+            32usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(io_uring_sqe),
+                "::",
+                stringify!(user_data)
             )
         );
     }
