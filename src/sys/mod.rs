@@ -86,6 +86,14 @@ pub struct io_uring_cqe {
     pub flags: __u32,
 }
 
+// cqe flags
+//
+// IORING_CQE_F_BUFFER	If set, the upper 16 bits are the buffer ID
+// IORING_CQE_F_MORE	If set, parent SQE will generate more CQE entries
+pub const IORING_CQE_F_BUFFER: u32 = 1;
+pub const IORING_CQE_F_MORE: u32 = 2;
+pub const IORING_CQE_BUFFER_SHIFT: ::std::os::raw::c_uint = 16;
+
 #[cfg(test)]
 mod tests {
     use super::*;
