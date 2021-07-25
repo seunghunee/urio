@@ -46,8 +46,8 @@ pub const IORING_FEAT_RSRC_TAGS: __u32 = 1 << 10;
 
 // Magic offsets for the application to mmap the data it needs
 pub const IORING_OFF_SQ_RING: off_t = 0;
-pub const IORING_OFF_CQ_RING: off_t = 134217728;
-pub const IORING_OFF_SQES: off_t = 268435456;
+pub const IORING_OFF_CQ_RING: off_t = 0x0800_0000;
+pub const IORING_OFF_SQES: off_t = 0x1000_0000;
 
 /// Filled with the offset for mmap(2)
 #[repr(C)]
