@@ -64,6 +64,19 @@ pub struct io_sqring_offsets {
     pub resv2: __u64,
 }
 
+// sq_ring.flags
+pub const IORING_SQ_NEED_WAKEUP: c_uint = 1 << 0; // needs io_uring_enter wakeup
+pub const IORING_SQ_CQ_OVERFLOW: c_uint = 1 << 1; // CQ ring is overflown
+
+// cq_ring.flags
+pub const IORING_CQ_EVENTFD_DISABLED: c_uint = 1 << 0; // disable eventfd notifications
+
+// io_uring_enter(2) flags
+pub const IORING_ENTER_GETEVENTS: c_uint = 1 << 0;
+pub const IORING_ENTER_SQ_WAKEUP: c_uint = 1 << 1;
+pub const IORING_ENTER_SQ_WAIT: c_uint = 1 << 2;
+pub const IORING_ENTER_EXT_ARG: c_uint = 1 << 3;
+
 /// Filled with the offset for mmap(2)
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
