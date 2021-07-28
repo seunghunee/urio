@@ -3,6 +3,7 @@
 #![allow(unaligned_references)]
 
 pub mod syscall;
+pub use syscall::*;
 
 use libc::*;
 
