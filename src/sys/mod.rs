@@ -234,53 +234,48 @@ pub const IOSQE_IO_HARDLINK: __u8 = 1 << 3; // like LINK, but stronger
 pub const IOSQE_ASYNC: __u8 = 1 << 4; // always go async
 pub const IOSQE_BUFFER_SELECT: __u8 = 1 << 5; // select buffer from sqe->buf_group
 
-#[repr(C)]
-#[derive(Debug)]
-pub enum OpCode {
-    IORING_OP_NOP,
-    IORING_OP_READV,
-    IORING_OP_WRITEV,
-    IORING_OP_FSYNC,
-    IORING_OP_READ_FIXED,
-    IORING_OP_WRITE_FIXED,
-    IORING_OP_POLL_ADD,
-    IORING_OP_POLL_REMOVE,
-    IORING_OP_SYNC_FILE_RANGE,
-    IORING_OP_SENDMSG,
-    IORING_OP_RECVMSG,
-    IORING_OP_TIMEOUT,
-    IORING_OP_TIMEOUT_REMOVE,
-    IORING_OP_ACCEPT,
-    IORING_OP_ASYNC_CANCEL,
-    IORING_OP_LINK_TIMEOUT,
-    IORING_OP_CONNECT,
-    IORING_OP_FALLOCATE,
-    IORING_OP_OPENAT,
-    IORING_OP_CLOSE,
-    IORING_OP_FILES_UPDATE,
-    IORING_OP_STATX,
-    IORING_OP_READ,
-    IORING_OP_WRITE,
-    IORING_OP_FADVISE,
-    IORING_OP_MADVISE,
-    IORING_OP_SEND,
-    IORING_OP_RECV,
-    IORING_OP_OPENAT2,
-    IORING_OP_EPOLL_CTL,
-    IORING_OP_SPLICE,
-    IORING_OP_PROVIDE_BUFFERS,
-    IORING_OP_REMOVE_BUFFERS,
-    IORING_OP_TEE,
-    IORING_OP_SHUTDOWN,
-    IORING_OP_RENAMEAT,
-    IORING_OP_UNLINKAT,
-    IORING_OP_MKDIRAT,
-    IORING_OP_SYMLINKAT,
-    IORING_OP_LINKAT,
-
-    /* this goes last, obviously */
-    IORING_OP_LAST,
-}
+// opcode
+pub const IORING_OP_NOP: __u8 = 0;
+pub const IORING_OP_READV: __u8 = 1;
+pub const IORING_OP_WRITEV: __u8 = 2;
+pub const IORING_OP_FSYNC: __u8 = 3;
+pub const IORING_OP_READ_FIXED: __u8 = 4;
+pub const IORING_OP_WRITE_FIXED: __u8 = 5;
+pub const IORING_OP_POLL_ADD: __u8 = 6;
+pub const IORING_OP_POLL_REMOVE: __u8 = 7;
+pub const IORING_OP_SYNC_FILE_RANGE: __u8 = 8;
+pub const IORING_OP_SENDMSG: __u8 = 9;
+pub const IORING_OP_RECVMSG: __u8 = 10;
+pub const IORING_OP_TIMEOUT: __u8 = 11;
+pub const IORING_OP_TIMEOUT_REMOVE: __u8 = 12;
+pub const IORING_OP_ACCEPT: __u8 = 13;
+pub const IORING_OP_ASYNC_CANCEL: __u8 = 14;
+pub const IORING_OP_LINK_TIMEOUT: __u8 = 15;
+pub const IORING_OP_CONNECT: __u8 = 16;
+pub const IORING_OP_FALLOCATE: __u8 = 17;
+pub const IORING_OP_OPENAT: __u8 = 18;
+pub const IORING_OP_CLOSE: __u8 = 19;
+pub const IORING_OP_FILES_UPDATE: __u8 = 20;
+pub const IORING_OP_STATX: __u8 = 21;
+pub const IORING_OP_READ: __u8 = 22;
+pub const IORING_OP_WRITE: __u8 = 23;
+pub const IORING_OP_FADVISE: __u8 = 24;
+pub const IORING_OP_MADVISE: __u8 = 25;
+pub const IORING_OP_SEND: __u8 = 26;
+pub const IORING_OP_RECV: __u8 = 27;
+pub const IORING_OP_OPENAT2: __u8 = 28;
+pub const IORING_OP_EPOLL_CTL: __u8 = 29;
+pub const IORING_OP_SPLICE: __u8 = 30;
+pub const IORING_OP_PROVIDE_BUFFERS: __u8 = 31;
+pub const IORING_OP_REMOVE_BUFFERS: __u8 = 32;
+pub const IORING_OP_TEE: __u8 = 33;
+pub const IORING_OP_SHUTDOWN: __u8 = 34;
+pub const IORING_OP_RENAMEAT: __u8 = 35;
+pub const IORING_OP_UNLINKAT: __u8 = 36;
+pub const IORING_OP_MKDIRAT: __u8 = 37;
+pub const IORING_OP_SYMLINKAT: __u8 = 38;
+pub const IORING_OP_LINKAT: __u8 = 39;
+pub const IORING_OP_LAST: __u8 = 40; // this goes last, obviously
 
 // sqe.fsync_flags
 pub const IORING_FSYNC_DATASYNC: __u32 = 1 << 0;
