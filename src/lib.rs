@@ -1,3 +1,5 @@
+pub mod builder;
+
 mod queue;
 mod sys;
 
