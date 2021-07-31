@@ -36,7 +36,10 @@ mod tests {
     };
 
     use super::*;
-    use crate::sys::{IORING_SETUP_SQPOLL, IORING_SETUP_SQ_AFF};
+    use crate::{
+        builder::Builder,
+        sys::{IORING_SETUP_SQPOLL, IORING_SETUP_SQ_AFF},
+    };
 
     #[test]
     fn io_uring_setup_no_entries() {
@@ -86,6 +89,7 @@ mod tests {
         assert!(ret < 0);
     }
 
+    const IORING_MAX_ENTRIES: u32 = 4096;
     #[test]
     fn io_uring_enter_invalid_fd() {
         assert_err(|| unsafe { io_uring_enter(-1, 0, 0, 0, null()) }, EBADF);
@@ -93,6 +97,24 @@ mod tests {
     #[test]
     fn io_uring_enter_valid_non_ring_fd() {
         assert_err(|| unsafe { io_uring_enter(0, 0, 0, 0, null()) }, EOPNOTSUPP);
+    }
+    #[test]
+    fn io_uring_enter_invalid_flags() {
+        let ring = Builder::new(IORING_MAX_ENTRIES)
+            .build()
+            .expect("Failed to build Uring");
+        assert_err(
+            || unsafe { io_uring_enter(ring.fd, 1, 0, c_uint::MAX, null()) },
+            EINVAL,
+        );
+    }
+    #[test]
+    fn io_uring_enter_no_submit_no_flags() {
+        let ring = Builder::new(IORING_MAX_ENTRIES)
+            .build()
+            .expect("Failed to build Uring");
+        let ret = unsafe { io_uring_enter(ring.fd, 0, 0, 0, null()) };
+        assert_eq!(ret, 0);
     }
 
     fn assert_err(f: impl FnOnce() -> c_int, err: c_int) {
