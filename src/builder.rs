@@ -9,6 +9,7 @@ use crate::Uring;
 ///
 /// Methods can be chained on it in order to configure it.
 /// The [`Uring`] is constructed by calling [`build`].
+/// The [`Uring::new`] methods are aliases for default options using this builder.
 ///
 /// [`build`]: method@Self::build
 pub struct Builder {
