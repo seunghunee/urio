@@ -1,11 +1,10 @@
-pub mod builder;
-
+mod builder;
 mod queue;
 mod sys;
 
 use std::io;
 
-use builder::Builder;
+pub use builder::Builder;
 use queue::{cq::Cq, sq::Sq};
 
 /// io_uring interface.
