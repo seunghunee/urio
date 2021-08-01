@@ -37,8 +37,8 @@ mod tests {
 
     use super::*;
     use crate::{
-        builder::Builder,
         sys::{IORING_SETUP_SQPOLL, IORING_SETUP_SQ_AFF},
+        Uring,
     };
 
     #[test]
@@ -100,9 +100,7 @@ mod tests {
     }
     #[test]
     fn io_uring_enter_invalid_flags() {
-        let ring = Builder::new(IORING_MAX_ENTRIES)
-            .build()
-            .expect("Failed to build Uring");
+        let ring = Uring::new(IORING_MAX_ENTRIES).expect("Failed to build an Uring");
         assert_err(
             || unsafe { io_uring_enter(ring.fd, 1, 0, c_uint::MAX, null()) },
             EINVAL,
@@ -110,9 +108,7 @@ mod tests {
     }
     #[test]
     fn io_uring_enter_no_submit_no_flags() {
-        let ring = Builder::new(IORING_MAX_ENTRIES)
-            .build()
-            .expect("Failed to build Uring");
+        let ring = Uring::new(IORING_MAX_ENTRIES).expect("Failed to build an Uring");
         let ret = unsafe { io_uring_enter(ring.fd, 0, 0, 0, null()) };
         assert_eq!(ret, 0);
     }
