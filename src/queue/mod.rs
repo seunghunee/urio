@@ -1,5 +1,6 @@
 pub mod cq;
 pub mod sq;
+pub mod sqe;
 mod util;
 
 use std::{io, mem, rc::Rc};
