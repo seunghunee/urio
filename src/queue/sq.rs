@@ -1,7 +1,12 @@
-use std::{rc::Rc, sync::atomic::AtomicU32};
+use std::{
+    ops::Deref,
+    rc::Rc,
+    sync::atomic::{AtomicU32, Ordering::Acquire},
+};
 
-use crate::sys::io_sqring_offsets;
+use crate::sys::{io_sqring_offsets, io_uring_sqe};
 
+use super::sqe::Packer;
 use super::util::Mmap;
 
 // Submission Queue.
@@ -36,6 +41,25 @@ impl Sq {
                 sqe_head: 0,
                 sqe_tail: 0,
                 sqes,
+            }
+        }
+    }
+
+    pub fn alloc_sqe(&mut self) -> Result<Packer, &'static str> {
+        unsafe {
+            let head = (*self.head).load(Acquire);
+            let next = self.sqe_tail + 1;
+
+            if next - head <= *self.ring_entries {
+                let idx = self.sqe_tail & *self.ring_mask;
+                let sqe = (*self.sqes.deref() as *mut io_uring_sqe)
+                    .add(idx as _)
+                    .as_mut()
+                    .unwrap(); // sqes never be a null pointer
+                self.sqe_tail = next;
+                Ok(Packer::new(sqe))
+            } else {
+                Err("Submission Queue is full")
             }
         }
     }
