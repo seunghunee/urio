@@ -64,3 +64,19 @@ impl Sq {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Uring;
+
+    #[test]
+    fn alloc_sqe_full_sq() {
+        const NUM_ENTRIES: u32 = 16;
+        let mut ring = Uring::new(NUM_ENTRIES).expect("Failed to setup ring");
+        let mut num = 0;
+        while let Ok(_builder) = ring.sq.alloc_sqe() {
+            num += 1;
+        }
+        assert_eq!(num, NUM_ENTRIES);
+    }
+}
