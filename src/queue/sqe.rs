@@ -13,4 +13,18 @@ impl<'a> Packer<'a> {
         sqe.__bindgen_anon_4.__pad2 = [0, 0, 0];
         Self(sqe)
     }
+
+    /// Pack `user_data` which to be passed back at completion time.
+    #[inline]
+    pub fn user_data(&mut self, user_data: u64) -> &mut Self {
+        self.0.user_data = user_data;
+        self
+    }
+
+    /// Pack IOSQE_* `flags`.
+    #[inline]
+    pub fn flags(&mut self, flags: u8) -> &mut Self {
+        self.0.flags = flags;
+        self
+    }
 }
