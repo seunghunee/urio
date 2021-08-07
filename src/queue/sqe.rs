@@ -1,4 +1,24 @@
+use bitflags::bitflags;
+
 use crate::sys::{io_uring_sqe, IORING_OP_POLL_ADD};
+
+bitflags! {
+    /// The bit mask specifying the events the application is interested in.
+    pub struct PollEvents: u32 {
+        /// There is data to read.
+        const IN = libc::POLLIN as _;
+        /// There is urgent data to read.
+        const PRI = libc::POLLPRI as _;
+        /// Writing is now possible.
+        const OUT = libc::POLLOUT as _;
+        /// Error condition.
+        const ERR = libc::POLLERR as _;
+        /// Hung up.
+        const HUP = libc::POLLHUP as _;
+        /// Invalid polling request.
+        const NVAL = libc::POLLNVAL as _;
+    }
+}
 
 /// Pack data into a SQE(Submission Queue Entry).
 pub struct Packer<'a>(&'a mut io_uring_sqe);
@@ -36,15 +56,17 @@ impl<'a> Packer<'a> {
     /// completed, it will have to be resubmitted. This command works like
     /// an async `poll(2)` and the completion event result is the returned
     /// mask of events.
-    #[allow(unused_mut)]
     #[inline]
-    pub fn packup_poll_add(&mut self, fd: i32, mut events: u32) {
+    pub fn packup_poll_add(&mut self, fd: RawFd, events: PollEvents) {
         self.pack(IORING_OP_POLL_ADD, fd, 0, 0, 0);
         #[cfg(target_endian = "big")]
         {
-            events = events << 16 | events >> 16;
+            self.0.__bindgen_anon_3.poll32_events = events.bits() << 16 | events.bits() >> 16;
         }
-        self.0.__bindgen_anon_3.poll32_events = events;
+        #[cfg(target_endian = "little")]
+        {
+            self.0.__bindgen_anon_3.poll32_events = events.bits();
+        }
     }
 
     #[inline]
