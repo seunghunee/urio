@@ -5,8 +5,8 @@ mod sys;
 use std::io;
 
 pub use builder::Builder;
-pub use queue::sqe::Packer;
-use queue::{cq::Cq, sq::Sq};
+pub use queue::sqe;
+use queue::{cq::Cq, sq::Sq, sqe::Packer};
 
 /// io_uring interface.
 pub struct Uring {
