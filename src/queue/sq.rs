@@ -12,12 +12,12 @@ use super::util::Mmap;
 // Submission Queue.
 pub struct Sq {
     head: *const AtomicU32,
-    tail: *const AtomicU32,
+    tail: *mut AtomicU32,
     ring_mask: *const u32,
     ring_entries: *const u32,
     flags: *const AtomicU32,
     dropped: *const AtomicU32,
-    array: *const AtomicU32,
+    array: *mut u32,
     ring: Rc<Mmap>,
 
     sqe_head: u32,
