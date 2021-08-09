@@ -1,7 +1,7 @@
 use std::{
     ops::Deref,
     rc::Rc,
-    sync::atomic::{AtomicU32, Ordering::Acquire},
+    sync::atomic::{AtomicU32, Ordering::Acquire, Ordering::Relaxed, Ordering::Release},
 };
 
 use crate::sys::{io_sqring_offsets, io_uring_sqe};
@@ -61,6 +61,30 @@ impl Sq {
             } else {
                 Err("Submission Queue is full")
             }
+        }
+    }
+
+    /// Flush SQEs to the SQ ring for preparing submission.
+    /// Returns the number of pending items in the SQ ring.
+    pub fn flush(&mut self) -> u32 {
+        unsafe {
+            let mut tail = *(self.tail as *const u32);
+            let to_submit = self.sqe_tail - self.sqe_head;
+
+            if to_submit > 0 {
+                let mask = *self.ring_mask;
+                for _ in 0..to_submit {
+                    *(self.array.add((tail & mask) as _)) = self.sqe_head & mask;
+                    tail += 1;
+                    self.sqe_head += 1;
+                }
+                (*self.tail).store(tail, Release);
+            }
+
+            // Loading head without `Acquire` is ok. There's no race.
+            // but, self.head can be potentially out-of-date regardless
+            // of atomicity.
+            tail - *(self.head as *const u32)
         }
     }
 }
