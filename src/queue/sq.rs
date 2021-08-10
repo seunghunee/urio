@@ -4,7 +4,7 @@ use std::{
     sync::atomic::{AtomicU32, Ordering::Acquire, Ordering::Relaxed, Ordering::Release},
 };
 
-use crate::sys::{io_sqring_offsets, io_uring_sqe};
+use crate::sys::{io_sqring_offsets, io_uring_sqe, IORING_SQ_NEED_WAKEUP};
 
 use super::sqe::Packer;
 use super::util::Mmap;
@@ -86,6 +86,13 @@ impl Sq {
             // of atomicity.
             tail - *(self.head as *const u32)
         }
+    }
+
+    /// Return `true` if the kernel side polling thread has gone to sleep
+    /// when it has been idle for a while.
+    #[inline]
+    pub fn needs_wakeup(&self) -> bool {
+        unsafe { (*self.flags).load(Relaxed) & IORING_SQ_NEED_WAKEUP != 0 }
     }
 }
 
