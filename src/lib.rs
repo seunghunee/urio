@@ -2,7 +2,11 @@ mod builder;
 mod queue;
 mod sys;
 
-use std::{io, ptr};
+use std::{
+    io,
+    os::unix::io::{AsRawFd, RawFd},
+    ptr,
+};
 
 pub use builder::Builder;
 pub use queue::sqe;
@@ -93,5 +97,12 @@ impl Uring {
 impl Drop for Uring {
     fn drop(&mut self) {
         unsafe { libc::close(self.fd) };
+    }
+}
+
+impl AsRawFd for Uring {
+    #[inline]
+    fn as_raw_fd(&self) -> RawFd {
+        self.fd
     }
 }
