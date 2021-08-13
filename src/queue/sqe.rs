@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use std::os::unix::io::RawFd;
 
 use crate::sys::{io_uring_sqe, IORING_OP_POLL_ADD};
 
