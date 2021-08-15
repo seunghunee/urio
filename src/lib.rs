@@ -95,6 +95,7 @@ impl Uring {
 }
 
 impl Drop for Uring {
+    #[inline]
     fn drop(&mut self) {
         unsafe { libc::close(self.fd) };
     }
