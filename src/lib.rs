@@ -37,8 +37,9 @@ impl Uring {
         Builder::new(entries).build()
     }
 
-    /// Allocate and push a vacant SQE(Submission Queue Entry) to the end
-    /// of the SQ(Submission Queue) and return a new sqe data [`Packer`].
+    /// Allocate a vacant SQE(Submission Queue Entry) and push it to the
+    /// end of the SQ(Submission Queue).
+    /// Returns a new sqe data [`Packer`].
     ///
     /// # Errors
     ///
