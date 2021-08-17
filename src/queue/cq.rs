@@ -1,6 +1,10 @@
-use std::{rc::Rc, sync::atomic::AtomicU32};
+use std::{
+    rc::Rc,
+    slice,
+    sync::atomic::{AtomicU32, Ordering::Acquire},
+};
 
-use crate::sys::io_cqring_offsets;
+use crate::sys::{io_cqring_offsets, io_uring_cqe};
 
 use super::util::Mmap;
 
@@ -12,7 +16,7 @@ pub struct Cq {
     ring_entries: *const u32,
     flags: Option<*const AtomicU32>,
     overflow: *const AtomicU32,
-    cqes: *const AtomicU32,
+    cqes: *const io_uring_cqe,
     ring: Rc<Mmap>,
 }
 
@@ -33,6 +37,22 @@ impl Cq {
                 cqes: ring.add(offset.cqes as _) as _,
                 ring,
             }
+        }
+    }
+
+    pub fn available_cqes(&mut self) -> &[io_uring_cqe] {
+        unsafe {
+            let tail = (*self.tail).load(Acquire);
+            let head = *(self.head as *const u32);
+
+            let len = tail - head;
+            if len == 0 {
+                return &[];
+            }
+
+            let idx = head & *self.ring_mask;
+            let cqe = self.cqes.add(idx as _);
+            slice::from_raw_parts(cqe, len as _)
         }
     }
 }
