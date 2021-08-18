@@ -4,7 +4,7 @@ use std::{
     sync::atomic::{AtomicU32, Ordering::Acquire, Ordering::Relaxed, Ordering::Release},
 };
 
-use crate::sys::{io_sqring_offsets, io_uring_sqe, IORING_SQ_NEED_WAKEUP};
+use crate::sys::{io_sqring_offsets, io_uring_sqe, IORING_SQ_CQ_OVERFLOW, IORING_SQ_NEED_WAKEUP};
 
 use super::sqe::Packer;
 use super::util::Mmap;
@@ -93,6 +93,12 @@ impl Sq {
     #[inline]
     pub fn needs_wakeup(&self) -> bool {
         unsafe { (*self.flags).load(Relaxed) & IORING_SQ_NEED_WAKEUP != 0 }
+    }
+
+    /// Returns `true` if the CQ(Completion Queue) ring is overflown.
+    #[inline]
+    pub fn is_cq_overflown(&self) -> bool {
+        unsafe { (*self.flags).load(Relaxed) & IORING_SQ_CQ_OVERFLOW != 0 }
     }
 }
 
