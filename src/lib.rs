@@ -12,8 +12,7 @@ pub use builder::Builder;
 pub use queue::sqe;
 use queue::{cq::Cq, sq::Sq, sqe::Packer};
 use sys::{
-    io_uring_enter, IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP, IORING_SETUP_IOPOLL,
-    IORING_SETUP_SQPOLL,
+    IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP, IORING_SETUP_IOPOLL, IORING_SETUP_SQPOLL,
 };
 
 /// io_uring interface.
@@ -74,7 +73,7 @@ impl Uring {
             flags |= IORING_ENTER_GETEVENTS;
         }
 
-        let ret = unsafe { io_uring_enter(self.fd, to_submit, min_complete, flags, ptr::null()) };
+        let ret = unsafe { sys::enter(self.fd, to_submit, min_complete, flags, ptr::null()) };
         if ret < 0 {
             return Err(io::Error::last_os_error());
         }

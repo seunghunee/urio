@@ -2,7 +2,7 @@
 #![allow(clippy::missing_safety_doc)]
 
 use libc::*;
-use std::mem::size_of;
+use std::mem;
 
 use super::io_uring_params;
 
@@ -15,7 +15,8 @@ pub unsafe fn io_uring_enter(
     to_submit: c_uint,
     min_complete: c_uint,
     flags: c_uint,
-    sig: *const sigset_t,
+    arg: *const c_void,
+    sz: size_t,
 ) -> c_int {
     syscall(
         SYS_io_uring_enter,
@@ -23,8 +24,25 @@ pub unsafe fn io_uring_enter(
         to_submit,
         min_complete,
         flags,
-        sig,
-        size_of::<sigset_t>(), // TODO: _NSIG / 8 in liburing
+        arg,
+        sz,
+    ) as _
+}
+
+pub unsafe fn enter(
+    fd: c_int,
+    to_submit: c_uint,
+    min_complete: c_uint,
+    flags: c_uint,
+    sig: *const sigset_t,
+) -> c_int {
+    io_uring_enter(
+        fd,
+        to_submit,
+        min_complete,
+        flags,
+        sig as _,
+        mem::size_of::<sigset_t>(),
     ) as _
 }
 
@@ -92,24 +110,24 @@ mod tests {
     const IORING_MAX_ENTRIES: u32 = 4096;
     #[test]
     fn io_uring_enter_invalid_fd() {
-        assert_err(|| unsafe { io_uring_enter(-1, 0, 0, 0, null()) }, EBADF);
+        assert_err(|| unsafe { enter(-1, 0, 0, 0, null()) }, EBADF);
     }
     #[test]
     fn io_uring_enter_valid_non_ring_fd() {
-        assert_err(|| unsafe { io_uring_enter(0, 0, 0, 0, null()) }, EOPNOTSUPP);
+        assert_err(|| unsafe { enter(0, 0, 0, 0, null()) }, EOPNOTSUPP);
     }
     #[test]
     fn io_uring_enter_invalid_flags() {
         let ring = Uring::new(IORING_MAX_ENTRIES).expect("Failed to build an Uring");
         assert_err(
-            || unsafe { io_uring_enter(ring.fd, 1, 0, c_uint::MAX, null()) },
+            || unsafe { enter(ring.fd, 1, 0, c_uint::MAX, null()) },
             EINVAL,
         );
     }
     #[test]
     fn io_uring_enter_no_submit_no_flags() {
         let ring = Uring::new(IORING_MAX_ENTRIES).expect("Failed to build an Uring");
-        let ret = unsafe { io_uring_enter(ring.fd, 0, 0, 0, null()) };
+        let ret = unsafe { enter(ring.fd, 0, 0, 0, null()) };
         assert_eq!(ret, 0);
     }
 
