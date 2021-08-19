@@ -5,7 +5,7 @@ use crate::sys::{io_uring_sqe, IORING_OP_POLL_ADD};
 
 bitflags! {
     /// The bit mask specifying the events the application is interested in.
-    pub struct PollEvents: u32 {
+    pub struct PollEvent: u32 {
         /// There is data to read.
         const IN = libc::POLLIN as _;
         /// There is urgent data to read.
@@ -58,7 +58,7 @@ impl<'a> Packer<'a> {
     /// an async `poll(2)` and the completion event result is the returned
     /// mask of events.
     #[inline]
-    pub fn packup_poll_add(&mut self, fd: RawFd, events: PollEvents) {
+    pub fn packup_poll_add(&mut self, fd: RawFd, events: PollEvent) {
         self.pack(IORING_OP_POLL_ADD, fd, 0, 0, 0);
         #[cfg(target_endian = "big")]
         {

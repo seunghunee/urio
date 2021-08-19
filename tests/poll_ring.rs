@@ -1,6 +1,6 @@
 use std::os::unix::io::AsRawFd;
 
-use urio::{sqe::PollEvents, Uring};
+use urio::{sqe::PollEvent, Uring};
 
 #[test]
 fn poll_ring() {
@@ -9,7 +9,7 @@ fn poll_ring() {
     let ring_fd = ring.as_raw_fd();
     ring.alloc_sqe()
         .expect("Failed to allocate a sqe")
-        .packup_poll_add(ring_fd, PollEvents::IN);
+        .packup_poll_add(ring_fd, PollEvent::IN);
 
     let submitted = ring.submit().expect("Failed to submit sqe");
     assert!(submitted > 0);
