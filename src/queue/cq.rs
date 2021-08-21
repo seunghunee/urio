@@ -1,7 +1,9 @@
 use std::{
     rc::Rc,
-    slice,
-    sync::atomic::{AtomicU32, Ordering::Acquire},
+    sync::atomic::{
+        AtomicU32,
+        Ordering::{Acquire, Release},
+    },
 };
 
 use crate::sys::{io_cqring_offsets, io_uring_cqe};
@@ -40,19 +42,73 @@ impl Cq {
         }
     }
 
-    pub fn available_cqes(&mut self) -> &[io_uring_cqe] {
+    pub fn reap(&mut self, want: usize) -> Result<Reaper, &'static str> {
+        let (ptr, available) = self.available_cqes();
+        if available < want {
+            return Err("Failed to get cqes as much as you want");
+        }
+
+        Ok(Reaper::new(self, ptr, want as _))
+    }
+
+    fn available_cqes(&self) -> (*const io_uring_cqe, usize) {
         unsafe {
             let tail = (*self.tail).load(Acquire);
             let head = *(self.head as *const u32);
 
             let len = tail - head;
             if len == 0 {
-                return &[];
+                return (self.cqes, 0);
             }
 
             let idx = head & *self.ring_mask;
             let cqe = self.cqes.add(idx as _);
-            slice::from_raw_parts(cqe, len as _)
+            (cqe, len as _)
+        }
+    }
+}
+
+/// Reap CQEs(Completion Queue Event).
+pub struct Reaper<'a> {
+    cq: &'a mut Cq,
+    ptr: *const io_uring_cqe,
+    len: u32,
+    off: u32,
+}
+
+impl<'a> Reaper<'a> {
+    fn new(cq: &'a mut Cq, ptr: *const io_uring_cqe, len: u32) -> Self {
+        Self {
+            cq,
+            ptr,
+            len,
+            off: 0,
+        }
+    }
+}
+
+impl Iterator for Reaper<'_> {
+    type Item = io_uring_cqe;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.off < self.len {
+            unsafe {
+                let idx = self.off & *self.cq.ring_mask;
+                let cqe = self.ptr.add(idx as _).as_ref().expect("cqe is null");
+                self.off += 1;
+                Some(*cqe)
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl Drop for Reaper<'_> {
+    fn drop(&mut self) {
+        unsafe {
+            let head = *(self.cq.head as *const u32);
+            (*self.cq.head).store(head + self.len, Release);
         }
     }
 }
