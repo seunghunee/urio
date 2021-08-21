@@ -10,9 +10,14 @@ use std::{
 
 pub use builder::Builder;
 pub use queue::sqe;
-use queue::{cq::Cq, sq::Sq, sqe::Packer};
+use queue::{
+    cq::{Cq, Reaper},
+    sq::Sq,
+    sqe::Packer,
+};
 use sys::{
-    IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP, IORING_SETUP_IOPOLL, IORING_SETUP_SQPOLL,
+    io_uring_cqe, IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP, IORING_SETUP_IOPOLL,
+    IORING_SETUP_SQPOLL,
 };
 
 /// io_uring interface.
@@ -79,6 +84,16 @@ impl Uring {
         }
 
         Ok(ret as _)
+    }
+
+    #[inline]
+    pub fn reap_cqe(&mut self) -> Result<io_uring_cqe, &'static str> {
+        Ok(self.reap_cqes(1)?.next().unwrap())
+    }
+
+    #[inline]
+    pub fn reap_cqes(&mut self, want: usize) -> Result<Reaper, &'static str> {
+        self.cq.reap(want)
     }
 
     /// Return `true` if IO polling is utilized.
