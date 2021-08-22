@@ -1,7 +1,7 @@
 use bitflags::bitflags;
-use std::os::unix::io::RawFd;
+use std::{io::IoSliceMut, os::unix::io::RawFd};
 
-use crate::sys::{io_uring_sqe, IORING_OP_NOP, IORING_OP_POLL_ADD};
+use crate::sys::{io_uring_sqe, IORING_OP_NOP, IORING_OP_POLL_ADD, IORING_OP_READV};
 
 bitflags! {
     /// The bit mask specifying the events the application is interested in.
@@ -56,6 +56,22 @@ impl<'a> Packer<'a> {
     #[inline]
     pub fn packup_nop(&mut self) {
         self.pack(IORING_OP_NOP, -1, 0, 0, 0);
+    }
+
+    /// Pack up data for the oepration that reads from the file descriptor `fd`
+    /// into the slice of buffers `bufs`
+    ///
+    /// It's similar to preadv2(2). If the file is not seekable, off must be set
+    /// to zero.
+    #[inline]
+    pub fn packup_read_vectored(&mut self, fd: RawFd, bufs: &mut [IoSliceMut<'_>], offset: u64) {
+        self.pack(
+            IORING_OP_READV,
+            fd,
+            bufs.as_mut_ptr() as u64,
+            bufs.len() as _,
+            offset,
+        );
     }
 
     /// Pack up data for the operation that poll the specified `fd` for the
