@@ -1,7 +1,7 @@
 use bitflags::bitflags;
 use std::os::unix::io::RawFd;
 
-use crate::sys::{io_uring_sqe, IORING_OP_POLL_ADD};
+use crate::sys::{io_uring_sqe, IORING_OP_NOP, IORING_OP_POLL_ADD};
 
 bitflags! {
     /// The bit mask specifying the events the application is interested in.
@@ -47,6 +47,15 @@ impl<'a> Packer<'a> {
     pub fn flags(&mut self, flags: u8) -> &mut Self {
         self.0.flags = flags;
         self
+    }
+
+    /// Pack up for the operation that does not perform any I/O.
+    ///
+    /// This is useful for testing the performance of the io_uring
+    /// implementation it‐self.
+    #[inline]
+    pub fn packup_nop(&mut self) {
+        self.pack(IORING_OP_NOP, -1, 0, 0, 0);
     }
 
     /// Pack up data for the operation that poll the specified `fd` for the
