@@ -41,7 +41,7 @@ fn read_vectored() -> Result<(), Box<dyn Error>> {
     assert!(submitted == 1);
 
     let cqe = ring.reap_cqe()?;
-    let len = cqe.res as usize;
+    let len = cqe.result()? as _;
     assert_eq!(len, TEXT.len());
     assert_eq!(&buf[..len], &TEXT[..len]);
 

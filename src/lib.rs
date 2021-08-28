@@ -1,4 +1,5 @@
 mod builder;
+pub mod cqe;
 mod queue;
 pub mod sqe;
 mod sys;
@@ -10,6 +11,7 @@ use std::{
 };
 
 pub use builder::Builder;
+use cqe::Cqe;
 use queue::{
     cq::{Cq, Reaper},
     sq::Sq,
@@ -87,7 +89,7 @@ impl Uring {
     }
 
     #[inline]
-    pub fn reap_cqe(&mut self) -> Result<io_uring_cqe, &'static str> {
+    pub fn reap_cqe(&mut self) -> Result<Cqe, &'static str> {
         Ok(self.reap_cqes(1)?.next().unwrap())
     }
 

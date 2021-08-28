@@ -23,10 +23,7 @@ fn poll_add_socket() -> Result<(), Box<dyn Error>> {
     assert!(submitted > 0);
 
     let cqe = ring.reap_cqe()?;
-    assert_eq!(
-        cqe.res & PollEvent::IN.bits() as i32,
-        PollEvent::IN.bits() as _
-    );
+    assert_ne!(cqe.result()? & PollEvent::IN.bits(), 0);
 
     Ok(())
 }

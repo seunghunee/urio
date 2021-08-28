@@ -6,7 +6,10 @@ use std::{
     },
 };
 
-use crate::sys::{io_cqring_offsets, io_uring_cqe};
+use crate::{
+    cqe::Cqe,
+    sys::{io_cqring_offsets, io_uring_cqe},
+};
 
 use super::util::Mmap;
 
@@ -94,7 +97,7 @@ impl<'a> Reaper<'a> {
 }
 
 impl Iterator for Reaper<'_> {
-    type Item = io_uring_cqe;
+    type Item = Cqe;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.off < self.len {
@@ -102,7 +105,7 @@ impl Iterator for Reaper<'_> {
                 let idx = self.off & *self.cq.ring_mask;
                 let cqe = self.ptr.add(idx as _).as_ref().expect("cqe is null");
                 self.off += 1;
-                Some(*cqe)
+                Some(Cqe::new(cqe))
             }
         } else {
             None
