@@ -1,5 +1,6 @@
 mod builder;
 mod queue;
+pub mod sqe;
 mod sys;
 
 use std::{
@@ -9,12 +10,11 @@ use std::{
 };
 
 pub use builder::Builder;
-pub use queue::sqe;
 use queue::{
     cq::{Cq, Reaper},
     sq::Sq,
-    sqe::Packer,
 };
+use sqe::Packer;
 use sys::{
     io_uring_cqe, IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP, IORING_SETUP_IOPOLL,
     IORING_SETUP_SQPOLL,

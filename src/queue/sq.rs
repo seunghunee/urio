@@ -4,9 +4,11 @@ use std::{
     sync::atomic::{AtomicU32, Ordering::Acquire, Ordering::Relaxed, Ordering::Release},
 };
 
-use crate::sys::{io_sqring_offsets, io_uring_sqe, IORING_SQ_CQ_OVERFLOW, IORING_SQ_NEED_WAKEUP};
+use crate::{
+    sqe::Packer,
+    sys::{io_sqring_offsets, io_uring_sqe, IORING_SQ_CQ_OVERFLOW, IORING_SQ_NEED_WAKEUP},
+};
 
-use super::sqe::Packer;
 use super::util::Mmap;
 
 // Submission Queue.
