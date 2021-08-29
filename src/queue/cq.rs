@@ -7,8 +7,8 @@ use std::{
 };
 
 use crate::{
-    cqe::Cqe,
     sys::{io_cqring_offsets, io_uring_cqe},
+    Cqe,
 };
 
 use super::util::Mmap;

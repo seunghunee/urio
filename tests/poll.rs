@@ -5,7 +5,7 @@ use std::{
     os::unix::io::AsRawFd,
 };
 
-use urio::{sqe::PollEvent, Uring};
+use urio::{op::PollEvent, Uring};
 
 #[test]
 fn poll_add_socket() -> Result<(), Box<dyn Error>> {

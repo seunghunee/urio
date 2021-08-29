@@ -1,25 +1,8 @@
-use bitflags::bitflags;
 use std::{io::IoSliceMut, os::unix::io::RawFd};
 
 use crate::sys::{io_uring_sqe, IORING_OP_NOP, IORING_OP_POLL_ADD, IORING_OP_READV};
 
-bitflags! {
-    /// The bit mask specifying the events the application is interested in.
-    pub struct PollEvent: u32 {
-        /// There is data to read.
-        const IN = libc::POLLIN as _;
-        /// There is urgent data to read.
-        const PRI = libc::POLLPRI as _;
-        /// Writing is now possible.
-        const OUT = libc::POLLOUT as _;
-        /// Error condition.
-        const ERR = libc::POLLERR as _;
-        /// Hung up.
-        const HUP = libc::POLLHUP as _;
-        /// Invalid polling request.
-        const NVAL = libc::POLLNVAL as _;
-    }
-}
+use super::PollEvent;
 
 /// Pack data into a SQE(Submission Queue Entry).
 pub struct Packer<'a>(&'a mut io_uring_sqe);

@@ -5,8 +5,8 @@ use std::{
 };
 
 use crate::{
-    sqe::Packer,
     sys::{io_sqring_offsets, io_uring_sqe, IORING_SQ_CQ_OVERFLOW, IORING_SQ_NEED_WAKEUP},
+    Packer,
 };
 
 use super::util::Mmap;
