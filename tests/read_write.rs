@@ -1,6 +1,6 @@
 use std::{
     error::Error,
-    io::{IoSliceMut, Write},
+    io::{IoSlice, IoSliceMut, Read, Write},
     os::unix::io::AsRawFd,
 };
 
@@ -43,6 +43,29 @@ fn read_vectored() -> Result<(), Box<dyn Error>> {
     let cqe = ring.reap_cqe()?;
     let len = cqe.result()? as _;
     assert_eq!(len, TEXT.len());
+    assert_eq!(&buf[..len], &TEXT[..len]);
+
+    Ok(())
+}
+
+#[test]
+fn write_vectored() -> Result<(), Box<dyn Error>> {
+    let mut ring = Uring::new(8)?;
+
+    let mut tmpfile = tempfile::tempfile()?;
+
+    ring.alloc_sqe()?
+        .packup_write_vectored(tmpfile.as_raw_fd(), &[IoSlice::new(TEXT)], 0);
+
+    let submitted = ring.submit_and_wait(1)?;
+    assert!(submitted == 1);
+
+    let cqe = ring.reap_cqe()?;
+    let len = cqe.result()? as _;
+    assert_eq!(len, TEXT.len());
+
+    let mut buf = vec![];
+    tmpfile.read_to_end(&mut buf)?;
     assert_eq!(&buf[..len], &TEXT[..len]);
 
     Ok(())
