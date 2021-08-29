@@ -1,6 +1,11 @@
-use std::{io::IoSliceMut, os::unix::io::RawFd};
+use std::{
+    io::{IoSlice, IoSliceMut},
+    os::unix::io::RawFd,
+};
 
-use crate::sys::{io_uring_sqe, IORING_OP_NOP, IORING_OP_POLL_ADD, IORING_OP_READV};
+use crate::sys::{
+    io_uring_sqe, IORING_OP_NOP, IORING_OP_POLL_ADD, IORING_OP_READV, IORING_OP_WRITEV,
+};
 
 use super::PollEvent;
 
@@ -52,6 +57,22 @@ impl<'a> Packer<'a> {
             IORING_OP_READV,
             fd,
             bufs.as_mut_ptr() as u64,
+            bufs.len() as _,
+            offset,
+        );
+    }
+
+    /// Pack up data for the oepration that writes the slice of buffers `bufs`
+    /// to the file descriptor `fd`.
+    ///
+    /// It's similar to pwritev2(2). If the file is not seekable, off must be
+    /// set to zero.
+    #[inline]
+    pub fn packup_write_vectored(&mut self, fd: RawFd, bufs: &[IoSlice<'_>], offset: u64) {
+        self.pack(
+            IORING_OP_WRITEV,
+            fd,
+            bufs.as_ptr() as u64,
             bufs.len() as _,
             offset,
         );
