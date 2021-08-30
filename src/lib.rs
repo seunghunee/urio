@@ -85,11 +85,25 @@ impl Uring {
         Ok(ret as _)
     }
 
+    /// Reap a CQE(Completion Queue Event). Returns a new [`Cqe`].
+    ///
+    /// # Errors
+    ///
+    /// If the CQ(Completion Queue) is empty, then an error is returned.
     #[inline]
     pub fn reap_cqe(&mut self) -> Result<Cqe, &'static str> {
         Ok(self.reap_exact_cqes(1)?.next().unwrap())
     }
 
+    /// Like [`reap_cqe`], but it reaps the exact `n` CQEs. Returns a
+    /// [`Reaper`].
+    ///
+    /// # Errors
+    ///
+    /// If CQEs in the CQ(Completion Queue) is less than `n`, then an error is
+    /// returned.
+    ///
+    /// [`reap_cqe`]: method@Self::reap_cqe
     #[inline]
     pub fn reap_exact_cqes(&mut self, n: usize) -> Result<Reaper, &'static str> {
         self.cq.reap(n)
