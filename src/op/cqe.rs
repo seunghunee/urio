@@ -2,6 +2,11 @@ use std::io;
 
 use crate::sys::io_uring_cqe;
 
+/// CQE(Completion Queue Event), which represents a completed IO event.
+///
+/// This is added by kernel to CQ(Completion Queue) for each SQE that is
+/// submitted. It contains the result of the operation submitted as part of the
+/// SQE.
 pub struct Cqe(io_uring_cqe);
 
 impl Cqe {
