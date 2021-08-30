@@ -87,12 +87,12 @@ impl Uring {
 
     #[inline]
     pub fn reap_cqe(&mut self) -> Result<Cqe, &'static str> {
-        Ok(self.reap_cqes(1)?.next().unwrap())
+        Ok(self.reap_exact_cqes(1)?.next().unwrap())
     }
 
     #[inline]
-    pub fn reap_cqes(&mut self, want: usize) -> Result<Reaper, &'static str> {
-        self.cq.reap(want)
+    pub fn reap_exact_cqes(&mut self, n: usize) -> Result<Reaper, &'static str> {
+        self.cq.reap(n)
     }
 
     /// Return `true` if IO polling is utilized.
