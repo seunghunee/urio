@@ -1,3 +1,8 @@
+//! # urio
+//!
+//! urio is a [io_uring](https://kernel.dk/io_uring.pdf) library written in
+//! Rust. It provides a **safe** Rust-friendly interface.
+
 mod builder;
 pub mod op;
 mod queue;

@@ -1,3 +1,5 @@
+//! Operation related types
+
 pub(super) mod cqe;
 pub(super) mod sqe;
 
