@@ -45,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ## Kernel Support
 
-io_uring is available since Linux kernel 5.1. So urio requires at least kernel 5.1 or newer. Even your kernel supports io_uring, some new features may be not supported. Please check [API Docs][docs-url] if features you want to use is supported by the kernel you are using.
+io_uring is available since Linux kernel 5.1. So urio requires at least kernel 5.1 or newer. Even your kernel supports io_uring, some new features may be not supported. Please check [API Docs][docs-url] and make sure that features you want to use is supported by the kernel you are using.
 
 [docs-badge]: https://docs.rs/urio/badge.svg
 [docs-url]: https://docs.rs/urio
