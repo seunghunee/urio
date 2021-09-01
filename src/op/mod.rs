@@ -1,5 +1,5 @@
-pub mod cqe;
-pub mod sqe;
+pub(super) mod cqe;
+pub(super) mod sqe;
 
 use bitflags::bitflags;
 
