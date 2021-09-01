@@ -5,6 +5,22 @@ pub(super) mod sqe;
 
 use bitflags::bitflags;
 
+use crate::sys::IORING_FSYNC_DATASYNC;
+
+bitflags! {
+    /// Synchronized I/O file or data integrity completion.
+    pub struct FsyncFlags: u32 {
+        /// Flush data and all associated metadata to the underlying hardware.
+        const FILESYNC = 0;
+        /// Flush data, but will only flush metadata updates that are required
+        /// to allow a subsequent read operation to complete successfully. This
+        /// can reduce the number of disk operations that are required for
+        /// applications that don't need the guarantees of file integrity
+        /// completion.
+        const DATASYNC = IORING_FSYNC_DATASYNC;
+    }
+}
+
 bitflags! {
     /// The bit mask specifying the events the application is interested in.
     pub struct PollEvent: u32 {

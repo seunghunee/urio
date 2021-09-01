@@ -4,10 +4,11 @@ use std::{
 };
 
 use crate::sys::{
-    io_uring_sqe, IORING_OP_NOP, IORING_OP_POLL_ADD, IORING_OP_READV, IORING_OP_WRITEV,
+    io_uring_sqe, IORING_OP_FSYNC, IORING_OP_NOP, IORING_OP_POLL_ADD, IORING_OP_READV,
+    IORING_OP_WRITEV,
 };
 
-use super::PollEvent;
+use super::{FsyncFlags, PollEvent};
 
 /// Pack data into a SQE(Submission Queue Entry).
 pub struct Packer<'a>(&'a mut io_uring_sqe);
@@ -46,7 +47,7 @@ impl<'a> Packer<'a> {
         self.pack(IORING_OP_NOP, -1, 0, 0, 0);
     }
 
-    /// Pack up data for the oepration that reads from the file descriptor `fd`
+    /// Pack up data for the operation that reads from the file descriptor `fd`
     /// into the slice of buffers `bufs`
     ///
     /// It's similar to preadv2(2). If the file is not seekable, off must be set
@@ -76,6 +77,22 @@ impl<'a> Packer<'a> {
             bufs.len() as _,
             offset,
         );
+    }
+
+    /// Pack up data for the operation that synchronize in-core state of the
+    /// file referred to by the file descriptor `fd` with storage device.
+    ///
+    /// See also fsync(2). Note that, while I/O is initiated in the order in
+    /// which it appears in the submission queue, completions are unordered. For
+    /// example, an application which places a write I/O followed by an fsync in
+    /// the submission queue cannot expect the fsync to apply to the write. The
+    /// two operations execute in parallel, so the fsync may complete before the
+    /// write is issued to the storage. The same is also true for previously
+    /// issued writes that have not completed prior to the fsync.
+    #[inline]
+    pub fn packup_fsync(&mut self, fd: RawFd, flags: FsyncFlags) {
+        self.pack(IORING_OP_FSYNC, fd, 0, 0, 0);
+        self.0.__bindgen_anon_3.fsync_flags = flags.bits();
     }
 
     /// Pack up data for the operation that poll the specified `fd` for the
