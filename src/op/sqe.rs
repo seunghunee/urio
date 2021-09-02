@@ -20,7 +20,10 @@ impl<'a> Packer<'a> {
         sqe.ioprio = 0;
         sqe.__bindgen_anon_3.rw_flags = 0;
         sqe.user_data = 0;
-        sqe.__bindgen_anon_4.__pad2 = [0, 0, 0];
+        sqe.__bindgen_anon_4.buf_index = 0;
+        sqe.personality = 0;
+        sqe.__bindgen_anon_5.file_index = 0;
+        sqe.__pad2 = [0, 0];
         Self(sqe)
     }
 
