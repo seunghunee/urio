@@ -126,6 +126,12 @@ impl Uring {
         self.cq.capacity()
     }
 
+    /// Returns the number of events in the CQ.
+    #[inline]
+    pub fn cq_len(&self) -> usize {
+        self.cq.len()
+    }
+
     /// Return `true` if IO polling is utilized.
     #[inline]
     fn is_io_polled(&self) -> bool {

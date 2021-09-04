@@ -75,6 +75,12 @@ impl Cq {
     pub fn capacity(&self) -> usize {
         unsafe { *self.ring_entries as _ }
     }
+
+    /// Returns the number of events in the CQ.
+    #[inline]
+    pub fn len(&self) -> usize {
+        (unsafe { (*self.tail).load(Acquire) - *(self.head as *const u32) }) as _
+    }
 }
 
 /// Reap CQEs(Completion Queue Event).
