@@ -90,6 +90,12 @@ impl Sq {
         }
     }
 
+    /// Returns the number of entries the SQ can hold.
+    #[inline]
+    pub fn capacity(&self) -> usize {
+        unsafe { *self.ring_entries as _ }
+    }
+
     /// Return `true` if the kernel side polling thread has gone to sleep
     /// when it has been idle for a while.
     #[inline]

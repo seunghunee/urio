@@ -114,6 +114,18 @@ impl Uring {
         self.cq.reap(n)
     }
 
+    /// Returns the number of entries the SQ can hold.
+    #[inline]
+    pub fn sq_capacity(&self) -> usize {
+        self.sq.capacity()
+    }
+
+    /// Returns the number of events the CQ can hold.
+    #[inline]
+    pub fn cq_capacity(&self) -> usize {
+        self.cq.capacity()
+    }
+
     /// Return `true` if IO polling is utilized.
     #[inline]
     fn is_io_polled(&self) -> bool {
