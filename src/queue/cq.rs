@@ -46,28 +46,11 @@ impl Cq {
     }
 
     pub fn reap(&mut self, want: usize) -> Result<Reaper, &'static str> {
-        let (ptr, available) = self.available_cqes();
-        if available < want {
+        if self.len() < want {
             return Err("Failed to get cqes as much as you want");
         }
 
-        Ok(Reaper::new(self, ptr, want as _))
-    }
-
-    fn available_cqes(&self) -> (*const io_uring_cqe, usize) {
-        unsafe {
-            let tail = (*self.tail).load(Acquire);
-            let head = *(self.head as *const u32);
-
-            let len = tail - head;
-            if len == 0 {
-                return (self.cqes, 0);
-            }
-
-            let idx = head & *self.ring_mask;
-            let cqe = self.cqes.add(idx as _);
-            (cqe, len as _)
-        }
+        Ok(Reaper::new(self, want as _))
     }
 
     /// Returns the number of events the CQ can hold.
@@ -79,26 +62,24 @@ impl Cq {
     /// Returns the number of events in the CQ.
     #[inline]
     pub fn len(&self) -> usize {
-        (unsafe { (*self.tail).load(Acquire) - *(self.head as *const u32) }) as _
+        (unsafe {
+            let tail = (*self.tail).load(Acquire);
+            let head = *(self.head as *const u32);
+            tail.wrapping_sub(head)
+        }) as _
     }
 }
 
 /// Reap CQEs(Completion Queue Event).
 pub struct Reaper<'a> {
     cq: &'a mut Cq,
-    ptr: *const io_uring_cqe,
     len: u32,
-    off: u32,
+    reaped: u32,
 }
 
 impl<'a> Reaper<'a> {
-    fn new(cq: &'a mut Cq, ptr: *const io_uring_cqe, len: u32) -> Self {
-        Self {
-            cq,
-            ptr,
-            len,
-            off: 0,
-        }
+    fn new(cq: &'a mut Cq, len: u32) -> Self {
+        Self { cq, len, reaped: 0 }
     }
 }
 
@@ -106,11 +87,12 @@ impl Iterator for Reaper<'_> {
     type Item = Cqe;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.off < self.len {
+        if self.reaped < self.len {
             unsafe {
-                let idx = self.off & *self.cq.ring_mask;
-                let cqe = self.ptr.add(idx as _).as_ref().expect("cqe is null");
-                self.off += 1;
+                let head = *(self.cq.head as *const u32);
+                let idx = head.wrapping_add(self.reaped) & *self.cq.ring_mask;
+                let cqe = self.cq.cqes.add(idx as _).as_ref().expect("cqe is null");
+                self.reaped += 1;
                 Some(Cqe::new(cqe))
             }
         } else {
@@ -123,7 +105,7 @@ impl Drop for Reaper<'_> {
     fn drop(&mut self) {
         unsafe {
             let head = *(self.cq.head as *const u32);
-            (*self.cq.head).store(head + self.len, Release);
+            (*self.cq.head).store(head.wrapping_add(self.len), Release);
         }
     }
 }

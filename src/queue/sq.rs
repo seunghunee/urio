@@ -50,9 +50,9 @@ impl Sq {
     pub fn alloc_sqe(&mut self) -> Result<Packer, &'static str> {
         unsafe {
             let head = (*self.head).load(Acquire);
-            let next = self.sqe_tail + 1;
+            let next = self.sqe_tail.wrapping_add(1);
 
-            if next - head <= *self.ring_entries {
+            if next.wrapping_sub(head) <= *self.ring_entries {
                 let idx = self.sqe_tail & *self.ring_mask;
                 let sqe = (*self.sqes.deref() as *mut io_uring_sqe)
                     .add(idx as _)
@@ -71,14 +71,14 @@ impl Sq {
     pub fn flush(&mut self) -> u32 {
         unsafe {
             let mut tail = *(self.tail as *const u32);
-            let to_submit = self.sqe_tail - self.sqe_head;
+            let to_submit = self.sqe_tail.wrapping_sub(self.sqe_head);
 
             if to_submit > 0 {
                 let mask = *self.ring_mask;
                 for _ in 0..to_submit {
                     *(self.array.add((tail & mask) as _)) = self.sqe_head & mask;
-                    tail += 1;
-                    self.sqe_head += 1;
+                    tail = tail.wrapping_add(1);
+                    self.sqe_head = self.sqe_head.wrapping_add(1);
                 }
                 (*self.tail).store(tail, Release);
             }
@@ -86,7 +86,7 @@ impl Sq {
             // Loading head without `Acquire` is ok. There's no race.
             // but, self.head can be potentially out-of-date regardless
             // of atomicity.
-            tail - *(self.head as *const u32)
+            tail.wrapping_sub(*(self.head as *const u32))
         }
     }
 
