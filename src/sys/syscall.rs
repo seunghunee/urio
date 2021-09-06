@@ -46,6 +46,15 @@ pub unsafe fn enter(
     ) as _
 }
 
+pub unsafe fn io_uring_register(
+    fd: c_int,
+    opcode: c_uint,
+    arg: *const c_void,
+    nr_args: c_uint,
+) -> c_int {
+    syscall(SYS_io_uring_register, fd, opcode, arg, nr_args) as _
+}
+
 #[cfg(test)]
 mod tests {
     use std::{
