@@ -307,6 +307,33 @@ pub const IORING_CQE_F_BUFFER: __u32 = 1 << 0; // the upper 16 bits are the buff
 pub const IORING_CQE_F_MORE: __u32 = 1 << 1; // parent SQE will generate more CQE entries
 pub const IORING_CQE_BUFFER_SHIFT: ::std::os::raw::c_uint = 16;
 
+/// io_uring_register(2) opcodes and arguments
+pub const IORING_REGISTER_BUFFERS: ::std::os::raw::c_uint = 0;
+pub const IORING_UNREGISTER_BUFFERS: ::std::os::raw::c_uint = 1;
+pub const IORING_REGISTER_FILES: ::std::os::raw::c_uint = 2;
+pub const IORING_UNREGISTER_FILES: ::std::os::raw::c_uint = 3;
+pub const IORING_REGISTER_EVENTFD: ::std::os::raw::c_uint = 4;
+pub const IORING_UNREGISTER_EVENTFD: ::std::os::raw::c_uint = 5;
+pub const IORING_REGISTER_FILES_UPDATE: ::std::os::raw::c_uint = 6;
+pub const IORING_REGISTER_EVENTFD_ASYNC: ::std::os::raw::c_uint = 7;
+pub const IORING_REGISTER_PROBE: ::std::os::raw::c_uint = 8;
+pub const IORING_REGISTER_PERSONALITY: ::std::os::raw::c_uint = 9;
+pub const IORING_UNREGISTER_PERSONALITY: ::std::os::raw::c_uint = 10;
+pub const IORING_REGISTER_RESTRICTIONS: ::std::os::raw::c_uint = 11;
+pub const IORING_REGISTER_ENABLE_RINGS: ::std::os::raw::c_uint = 12;
+// extended with tagging
+pub const IORING_REGISTER_FILES2: ::std::os::raw::c_uint = 13;
+pub const IORING_REGISTER_FILES_UPDATE2: ::std::os::raw::c_uint = 14;
+pub const IORING_REGISTER_BUFFERS2: ::std::os::raw::c_uint = 15;
+pub const IORING_REGISTER_BUFFERS_UPDATE: ::std::os::raw::c_uint = 16;
+// set/clear io-wq thread affinities
+pub const IORING_REGISTER_IOWQ_AFF: ::std::os::raw::c_uint = 17;
+pub const IORING_UNREGISTER_IOWQ_AFF: ::std::os::raw::c_uint = 18;
+// set/get max number of async workers
+pub const IORING_REGISTER_IOWQ_MAX_WORKERS: ::std::os::raw::c_uint = 19;
+// this goes last
+pub const IORING_REGISTER_LAST: ::std::os::raw::c_uint = 20;
+
 #[cfg(test)]
 mod tests {
     use super::*;
