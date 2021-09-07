@@ -61,7 +61,7 @@ mod tests {
         error::Error,
         io::{self, IoSliceMut},
         os::unix::io::AsRawFd,
-        ptr::{null, null_mut},
+        ptr,
     };
 
     use super::*;
@@ -77,7 +77,7 @@ mod tests {
     }
     #[test]
     fn io_uring_setup_null_ptr() {
-        assert_err(|| unsafe { io_uring_setup(1, null_mut()) }, EFAULT);
+        assert_err(|| unsafe { io_uring_setup(1, ptr::null_mut()) }, EFAULT);
     }
     #[test]
     fn io_uring_setup_non_zero_resv() {
@@ -121,24 +121,24 @@ mod tests {
     const RING_SIZE: u32 = 128;
     #[test]
     fn io_uring_enter_invalid_fd() {
-        assert_err(|| unsafe { enter(-1, 0, 0, 0, null()) }, EBADF);
+        assert_err(|| unsafe { enter(-1, 0, 0, 0, ptr::null()) }, EBADF);
     }
     #[test]
     fn io_uring_enter_valid_non_ring_fd() {
-        assert_err(|| unsafe { enter(0, 0, 0, 0, null()) }, EOPNOTSUPP);
+        assert_err(|| unsafe { enter(0, 0, 0, 0, ptr::null()) }, EOPNOTSUPP);
     }
     #[test]
     fn io_uring_enter_invalid_flags() {
         let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
         assert_err(
-            || unsafe { enter(ring.fd, 1, 0, c_uint::MAX, null()) },
+            || unsafe { enter(ring.fd, 1, 0, c_uint::MAX, ptr::null()) },
             EINVAL,
         );
     }
     #[test]
     fn io_uring_enter_no_submit_no_flags() {
         let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
-        let ret = unsafe { enter(ring.fd, 0, 0, 0, null()) };
+        let ret = unsafe { enter(ring.fd, 0, 0, 0, ptr::null()) };
         assert_eq!(ret, 0);
     }
     const BLOCK_SIZE: usize = 4096;
@@ -175,7 +175,7 @@ mod tests {
                 0,
                 sq_capacity as _,
                 IORING_ENTER_GETEVENTS,
-                null(),
+                ptr::null(),
             )
         };
         assert!(ret == 0);
