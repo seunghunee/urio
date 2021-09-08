@@ -59,6 +59,7 @@ pub unsafe fn io_uring_register(
 mod tests {
     use std::{
         error::Error,
+        fs::File,
         io::{self, IoSliceMut},
         os::unix::io::AsRawFd,
         ptr,
@@ -189,6 +190,22 @@ mod tests {
         }
 
         Ok(())
+    }
+
+    #[test]
+    fn io_uring_register_invalid_fd() {
+        assert_err(
+            || unsafe { io_uring_register(-1, 0, ptr::null(), 0) },
+            EBADF,
+        );
+    }
+    #[test]
+    fn io_uring_register_null_dev_fd() {
+        let null_device = File::open("/dev/null").expect("Failed to open the null device");
+        assert_err(
+            || unsafe { io_uring_register(null_device.as_raw_fd(), 0, ptr::null(), 0) },
+            EOPNOTSUPP,
+        );
     }
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
