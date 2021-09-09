@@ -67,7 +67,10 @@ mod tests {
 
     use super::*;
     use crate::{
-        sys::{IORING_ENTER_GETEVENTS, IORING_SETUP_SQPOLL, IORING_SETUP_SQ_AFF},
+        sys::{
+            IORING_ENTER_GETEVENTS, IORING_REGISTER_BUFFERS, IORING_SETUP_SQPOLL,
+            IORING_SETUP_SQ_AFF, IORING_UNREGISTER_BUFFERS,
+        },
         Uring,
     };
 
@@ -213,6 +216,29 @@ mod tests {
         assert_err(
             || unsafe { io_uring_register(ring.as_raw_fd(), c_uint::MAX, ptr::null(), 0) },
             EINVAL,
+        );
+    }
+    #[test]
+    fn io_uring_register_null_iovec() {
+        let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
+        let iov = libc::iovec {
+            iov_base: 0 as _,
+            iov_len: 4096,
+        };
+
+        assert_err_with_drop(
+            || unsafe {
+                io_uring_register(
+                    ring.as_raw_fd(),
+                    IORING_REGISTER_BUFFERS,
+                    &iov as *const libc::iovec as _,
+                    1,
+                )
+            },
+            EFAULT,
+            |_| unsafe {
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 1);
+            },
         );
     }
 
