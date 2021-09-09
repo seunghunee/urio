@@ -241,6 +241,26 @@ mod tests {
             },
         );
     }
+    #[test]
+    fn io_uring_register_empty_iovec() {
+        let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
+        let mut buf = [];
+        let iov = &[IoSliceMut::new(&mut buf)];
+        assert_err_with_drop(
+            || unsafe {
+                io_uring_register(
+                    ring.as_raw_fd(),
+                    IORING_REGISTER_BUFFERS,
+                    iov.as_ptr() as _,
+                    1,
+                )
+            },
+            EFAULT,
+            |_| unsafe {
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 1);
+            },
+        );
+    }
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
         assert_err_with_drop(f, err, |fd| unsafe {
