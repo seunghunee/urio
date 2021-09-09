@@ -207,6 +207,14 @@ mod tests {
             EOPNOTSUPP,
         );
     }
+    #[test]
+    fn io_uring_register_invalid_opcode() {
+        let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
+        assert_err(
+            || unsafe { io_uring_register(ring.as_raw_fd(), c_uint::MAX, ptr::null(), 0) },
+            EINVAL,
+        );
+    }
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
         assert_err_with_drop(f, err, |fd| unsafe {
