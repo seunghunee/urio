@@ -222,7 +222,7 @@ mod tests {
     fn io_uring_register_null_pointer_buf() {
         let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
         let iov = iovec {
-            iov_base: 0 as _,
+            iov_base: ptr::null_mut(),
             iov_len: 4096,
         };
 
