@@ -221,7 +221,7 @@ mod tests {
     #[test]
     fn io_uring_register_null_iovec() {
         let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
-        let iov = libc::iovec {
+        let iov = iovec {
             iov_base: 0 as _,
             iov_len: 4096,
         };
@@ -231,7 +231,7 @@ mod tests {
                 io_uring_register(
                     ring.as_raw_fd(),
                     IORING_REGISTER_BUFFERS,
-                    &iov as *const libc::iovec as _,
+                    &iov as *const iovec as _,
                     1,
                 )
             },
@@ -264,7 +264,7 @@ mod tests {
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
         assert_err_with_drop(f, err, |fd| unsafe {
-            libc::close(fd);
+            close(fd);
         });
     }
     fn assert_err(f: impl FnOnce() -> c_int, err: c_int) {
