@@ -261,6 +261,45 @@ mod tests {
             },
         );
     }
+    #[test]
+    fn io_uring_register_len_exceed_size_buf() {
+        let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
+
+        let pagesize = unsafe { sysconf(_SC_PAGE_SIZE) };
+        let buf = unsafe {
+            mmap(
+                ptr::null_mut(),
+                (2 * pagesize) as _,
+                PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS,
+                -1,
+                0,
+            )
+        };
+        assert_ne!(buf, MAP_FAILED);
+        let ret = unsafe { munmap(buf.add(pagesize as _), pagesize as _) };
+        assert_eq!(ret, 0);
+        let iov = iovec {
+            iov_base: buf,
+            iov_len: (2 * pagesize) as _,
+        };
+
+        assert_err_with_drop(
+            || unsafe {
+                io_uring_register(
+                    ring.as_raw_fd(),
+                    IORING_REGISTER_BUFFERS,
+                    &iov as *const iovec as _,
+                    1,
+                )
+            },
+            EFAULT,
+            |_| unsafe {
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 1);
+            },
+        );
+        unsafe { munmap(buf, pagesize as _) };
+    }
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
         assert_err_with_drop(f, err, |fd| unsafe {
