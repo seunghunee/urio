@@ -219,7 +219,7 @@ mod tests {
         );
     }
     #[test]
-    fn io_uring_register_null_iovec() {
+    fn io_uring_register_null_pointer_buf() {
         let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
         let iov = iovec {
             iov_base: 0 as _,
@@ -242,7 +242,7 @@ mod tests {
         );
     }
     #[test]
-    fn io_uring_register_empty_iovec() {
+    fn io_uring_register_empty_buf() {
         let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
         let mut buf = [];
         let iov = &[IoSliceMut::new(&mut buf)];
