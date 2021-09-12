@@ -300,6 +300,44 @@ mod tests {
         );
         unsafe { munmap(buf, pagesize as _) };
     }
+    #[test]
+    #[ignore] // require at least 1 nr_hugepages
+    fn io_uring_register_huge_buf() {
+        let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
+
+        let iov_len = 2 * 1024 * 1024;
+        let iov_base = unsafe {
+            mmap(
+                ptr::null_mut(),
+                iov_len,
+                PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_HUGETLB | MAP_HUGE_2MB | MAP_ANONYMOUS,
+                -1,
+                0,
+            )
+        };
+        assert_eq!(
+            iov_base, MAP_FAILED,
+            "Unable to map a huge page. Try increasing /proc/sys/vm/nr_hugepages by at least 1."
+        );
+        let iov = iovec { iov_base, iov_len };
+
+        let ret = unsafe {
+            io_uring_register(
+                ring.as_raw_fd(),
+                IORING_REGISTER_BUFFERS,
+                &iov as *const iovec as _,
+                1,
+            )
+        };
+        if ret < 0 {
+            unsafe { munmap(iov_base, iov_len) };
+            panic!("Unable to test registering of a huge page. Try increasing the RLIMIT_MEMLOCK resource limit by at least 2MB.");
+        }
+
+        unsafe { io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0) };
+        unsafe { munmap(iov_base, iov_len) };
+    }
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
         assert_err_with_drop(f, err, |fd| unsafe {
