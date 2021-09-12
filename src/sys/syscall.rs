@@ -266,23 +266,21 @@ mod tests {
         let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
 
         let pagesize = unsafe { sysconf(_SC_PAGE_SIZE) };
-        let buf = unsafe {
+        let iov_len = 2 * pagesize as usize;
+        let iov_base = unsafe {
             mmap(
                 ptr::null_mut(),
-                (2 * pagesize) as _,
+                iov_len,
                 PROT_READ | PROT_WRITE,
                 MAP_PRIVATE | MAP_ANONYMOUS,
                 -1,
                 0,
             )
         };
-        assert_ne!(buf, MAP_FAILED);
-        let ret = unsafe { munmap(buf.add(pagesize as _), pagesize as _) };
+        assert_ne!(iov_base, MAP_FAILED);
+        let ret = unsafe { munmap(iov_base.add(pagesize as _), pagesize as _) };
         assert_eq!(ret, 0);
-        let iov = iovec {
-            iov_base: buf,
-            iov_len: (2 * pagesize) as _,
-        };
+        let iov = iovec { iov_base, iov_len };
 
         assert_err_with_drop(
             || unsafe {
@@ -298,7 +296,7 @@ mod tests {
                 io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0);
             },
         );
-        unsafe { munmap(buf, pagesize as _) };
+        unsafe { munmap(iov_base, pagesize as _) };
     }
     #[test]
     #[ignore] // require at least 1 nr_hugepages
