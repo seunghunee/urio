@@ -237,7 +237,7 @@ mod tests {
             },
             EFAULT,
             |_| unsafe {
-                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 1);
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0);
             },
         );
     }
@@ -257,7 +257,7 @@ mod tests {
             },
             EFAULT,
             |_| unsafe {
-                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 1);
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0);
             },
         );
     }
@@ -295,7 +295,7 @@ mod tests {
             },
             EFAULT,
             |_| unsafe {
-                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 1);
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0);
             },
         );
         unsafe { munmap(buf, pagesize as _) };
