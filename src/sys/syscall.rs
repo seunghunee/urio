@@ -336,6 +336,42 @@ mod tests {
         unsafe { io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0) };
         unsafe { munmap(iov_base, iov_len) };
     }
+    #[test]
+    fn io_uring_register_filebacked_buf() {
+        let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
+
+        let iov_len = 2 * 1024 * 1024;
+        let tmpfile = tempfile::tempfile().expect("Failed to create a tempfile");
+        tmpfile.set_len(iov_len as _).expect("Failed to set len");
+        let iov_base = unsafe {
+            mmap(
+                ptr::null_mut(),
+                iov_len,
+                PROT_READ | PROT_WRITE,
+                MAP_SHARED,
+                tmpfile.as_raw_fd(),
+                0,
+            )
+        };
+        assert_ne!(iov_base, MAP_FAILED);
+        let iov = iovec { iov_base, iov_len };
+
+        assert_err_with_drop(
+            || unsafe {
+                io_uring_register(
+                    ring.as_raw_fd(),
+                    IORING_REGISTER_BUFFERS,
+                    &iov as *const iovec as _,
+                    1,
+                )
+            },
+            EOPNOTSUPP,
+            |_| unsafe {
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0);
+            },
+        );
+        unsafe { munmap(iov_base, iov_len) };
+    }
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
         assert_err_with_drop(f, err, |fd| unsafe {
