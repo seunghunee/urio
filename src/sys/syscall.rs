@@ -377,6 +377,57 @@ mod tests {
         );
         unsafe { munmap(iov_base, iov_len) };
     }
+    #[test]
+    fn io_uring_register_memlock_exceeded_buf() {
+        if unsafe { getuid() } == 0 {
+            return; // require non-root
+        }
+
+        let mut rlim = rlimit {
+            rlim_cur: 0,
+            rlim_max: 0,
+        };
+        let ret = unsafe { getrlimit(RLIMIT_MEMLOCK, &mut rlim) };
+        assert_eq!(ret, 0);
+        if rlim.rlim_cur >= 2 * 1024 * 1024 * 1024 {
+            return; // if limit is larger than 2GB, skip this test
+        }
+
+        let ring = Uring::new(RING_SIZE).expect("Failed to build an Uring");
+
+        let mut buf = vec![0; (rlim.rlim_cur * 2) as _];
+        loop {
+            if buf.len() == 0 {
+                panic!("Failed to register buffers");
+            }
+
+            let iov = &[IoSliceMut::new(&mut buf)];
+            let ret = unsafe {
+                io_uring_register(
+                    ring.as_raw_fd(),
+                    IORING_REGISTER_BUFFERS,
+                    iov.as_ptr() as _,
+                    1,
+                )
+            };
+            if ret < 0 {
+                let raw_os_error = io::Error::last_os_error().raw_os_error().unwrap();
+                if raw_os_error == EFAULT {
+                    break;
+                }
+                if raw_os_error == ENOMEM {
+                    buf.resize(buf.len() / 2, 0);
+                    continue;
+                }
+                panic!("Expected success or EFAULT, got {}", raw_os_error);
+            }
+
+            unsafe {
+                io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0);
+            }
+            break;
+        }
+    }
 
     fn assert_err_setup(f: impl FnOnce() -> c_int, err: c_int) {
         assert_err_with_drop(f, err, |fd| unsafe {
