@@ -330,7 +330,12 @@ mod tests {
         };
         if ret < 0 {
             unsafe { munmap(iov_base, iov_len) };
-            panic!("Unable to test registering of a huge page. Try increasing the RLIMIT_MEMLOCK resource limit by at least 2MB.");
+            let raw_os_error = io::Error::last_os_error().raw_os_error().unwrap();
+            if raw_os_error == ENOMEM {
+                panic!("Unable to test registering of a huge page. Try increasing the RLIMIT_MEMLOCK resource limit by at least 2MB.");
+            } else {
+                panic!("Expected success, got {}", raw_os_error);
+            }
         }
 
         unsafe { io_uring_register(ring.as_raw_fd(), IORING_UNREGISTER_BUFFERS, ptr::null(), 0) };
