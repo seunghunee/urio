@@ -5,7 +5,7 @@ use std::{
 
 use crate::sys::{
     io_uring_sqe, IORING_OP_FSYNC, IORING_OP_NOP, IORING_OP_POLL_ADD, IORING_OP_READV,
-    IORING_OP_WRITEV,
+    IORING_OP_READ_FIXED, IORING_OP_WRITEV, IORING_OP_WRITE_FIXED,
 };
 
 use super::{FsyncFlags, PollEvent};
@@ -96,6 +96,36 @@ impl<'a> Packer<'a> {
     pub fn packup_fsync(&mut self, fd: RawFd, flags: FsyncFlags) {
         self.pack(IORING_OP_FSYNC, fd, 0, 0, 0);
         self.0.__bindgen_anon_3.fsync_flags = flags.bits();
+    }
+
+    /// Pack up data for the operation that read from pre-mapped buffers `buf`.
+    ///
+    ///
+    #[inline]
+    pub fn packup_read_fixed(&mut self, fd: RawFd, buf: &mut [u8], offset: u64, buf_index: u16) {
+        self.pack(
+            IORING_OP_READ_FIXED,
+            fd,
+            buf.as_mut_ptr() as _,
+            buf.len() as _,
+            offset,
+        );
+        self.0.__bindgen_anon_4.buf_index = buf_index;
+    }
+
+    /// Pack up data for the operation that write to pre-mapped buffers `buf`.
+    ///
+    ///
+    #[inline]
+    pub fn packup_write_fixed(&mut self, fd: RawFd, buf: &[u8], offset: u64, buf_index: u16) {
+        self.pack(
+            IORING_OP_WRITE_FIXED,
+            fd,
+            buf.as_ptr() as _,
+            buf.len() as _,
+            offset,
+        );
+        self.0.__bindgen_anon_4.buf_index = buf_index;
     }
 
     /// Pack up data for the operation that poll the specified `fd` for the
