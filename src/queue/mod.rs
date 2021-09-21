@@ -11,7 +11,7 @@ use crate::sys::{
 
 use self::util::Mmap;
 
-pub fn mmap(fd: i32, p: &io_uring_params) -> io::Result<(Rc<Mmap>, Rc<Mmap>, Mmap)> {
+pub(crate) fn mmap(fd: i32, p: &io_uring_params) -> io::Result<(Rc<Mmap>, Rc<Mmap>, Mmap)> {
     // mmap rings
     let sqr_len = p.sq_off.array as usize + p.sq_entries as usize * mem::size_of::<u32>();
     let cqr_len = p.cq_off.cqes as usize + p.cq_entries as usize * mem::size_of::<io_uring_cqe>();

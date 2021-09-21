@@ -26,7 +26,7 @@ pub struct Cq {
 }
 
 impl Cq {
-    pub fn new(ring: Rc<Mmap>, offset: io_cqring_offsets) -> Self {
+    pub(crate) fn new(ring: Rc<Mmap>, offset: io_cqring_offsets) -> Self {
         unsafe {
             Self {
                 head: ring.add(offset.head as _) as _,

@@ -28,7 +28,7 @@ pub struct Sq {
 }
 
 impl Sq {
-    pub fn new(ring: Rc<Mmap>, offset: io_sqring_offsets, sqes: Mmap) -> Self {
+    pub(crate) fn new(ring: Rc<Mmap>, offset: io_sqring_offsets, sqes: Mmap) -> Self {
         unsafe {
             Self {
                 head: ring.add(offset.head as _) as _,
