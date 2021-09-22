@@ -28,15 +28,14 @@ fn poll_add_socket() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// TODO: AsRawFd
-// #[test]
-// fn poll_add_ring() -> Result<(), Box<dyn Error>> {
-//     let (mut sq, mut cq) = urio::new(1)?;
+#[test]
+fn poll_add_ring() -> Result<(), Box<dyn Error>> {
+    let (mut sq, _) = urio::new(1)?;
 
-//     let ring_fd = sq.as_raw_fd();
-//     sq.alloc_sqe()?.packup_poll_add(ring_fd, PollEvent::IN);
+    let ring_fd = sq.uring().as_raw_fd();
+    sq.alloc_sqe()?.packup_poll_add(ring_fd, PollEvent::IN);
 
-//     let submitted = sq.submit()?;
-//     assert!(submitted > 0);
-//     Ok(())
-// }
+    let submitted = sq.submit()?;
+    assert!(submitted > 0);
+    Ok(())
+}
