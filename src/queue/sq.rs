@@ -63,6 +63,11 @@ impl Sq {
         }
     }
 
+    /// Returns the reference to the [`Uring`].
+    pub fn uring(&self) -> &Uring {
+        &self.uring
+    }
+
     /// Allocate a vacant SQE(Submission Queue Entry) and push it to the end of
     /// the SQ(Submission Queue). Returns a new sqe data [`Packer`].
     ///

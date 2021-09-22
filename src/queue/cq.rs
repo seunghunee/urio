@@ -49,6 +49,11 @@ impl Cq {
         }
     }
 
+    /// Returns the reference to the [`Uring`].
+    pub fn uring(&self) -> &Uring {
+        &self.uring
+    }
+
     /// Reap a CQE(Completion Queue Event). Returns a new [`Cqe`].
     ///
     /// # Errors

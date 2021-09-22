@@ -14,7 +14,10 @@ pub use queue::{Cq, Reaper, Sq};
 
 mod sys;
 
-use std::{io, os::unix::io::RawFd};
+use std::{
+    io,
+    os::unix::io::{AsRawFd, RawFd},
+};
 
 use sys::{IORING_SETUP_IOPOLL, IORING_SETUP_SQPOLL};
 
@@ -29,7 +32,8 @@ pub fn new(entries: u32) -> io::Result<(Sq, Cq)> {
     Builder::new(entries).build()
 }
 
-struct Uring {
+/// Interface for getting information about the io_uring instance.
+pub struct Uring {
     fd: RawFd,
     flags: u32,
     features: u32,
@@ -38,13 +42,13 @@ struct Uring {
 impl Uring {
     /// Return `true` if IO polling is utilized.
     #[inline]
-    fn is_io_polled(&self) -> bool {
+    pub fn is_io_polled(&self) -> bool {
         self.flags & IORING_SETUP_IOPOLL != 0
     }
 
     /// Return `true` if the kernel side SQ polling thread exist.
     #[inline]
-    fn has_sqpoll(&self) -> bool {
+    pub fn has_sqpoll(&self) -> bool {
         self.flags & IORING_SETUP_SQPOLL != 0
     }
 }
@@ -53,5 +57,12 @@ impl Drop for Uring {
     #[inline]
     fn drop(&mut self) {
         unsafe { libc::close(self.fd) };
+    }
+}
+
+impl AsRawFd for Uring {
+    #[inline]
+    fn as_raw_fd(&self) -> RawFd {
+        self.fd
     }
 }
