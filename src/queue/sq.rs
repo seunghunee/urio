@@ -2,7 +2,6 @@ use std::{
     io,
     ops::Deref,
     ptr,
-    rc::Rc,
     sync::{
         atomic::{AtomicU32, Ordering::Acquire, Ordering::Relaxed, Ordering::Release},
         Arc,
@@ -30,7 +29,7 @@ pub struct Sq {
     flags: *const AtomicU32,
     dropped: *const AtomicU32,
     array: *mut u32,
-    ring: Rc<Mmap>,
+    ring: Arc<Mmap>,
 
     sqe_head: u32,
     sqe_tail: u32,
@@ -40,7 +39,7 @@ pub struct Sq {
 impl Sq {
     pub(crate) fn new(
         uring: Arc<Uring>,
-        ring: Rc<Mmap>,
+        ring: Arc<Mmap>,
         offset: io_sqring_offsets,
         sqes: Mmap,
     ) -> Self {

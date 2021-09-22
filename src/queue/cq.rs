@@ -1,12 +1,9 @@
-use std::{
-    rc::Rc,
-    sync::{
-        atomic::{
-            AtomicU32,
-            Ordering::{Acquire, Release},
-        },
-        Arc,
+use std::sync::{
+    atomic::{
+        AtomicU32,
+        Ordering::{Acquire, Release},
     },
+    Arc,
 };
 
 use crate::{
@@ -27,11 +24,11 @@ pub struct Cq {
     flags: Option<*const AtomicU32>,
     overflow: *const AtomicU32,
     cqes: *const io_uring_cqe,
-    ring: Rc<Mmap>,
+    ring: Arc<Mmap>,
 }
 
 impl Cq {
-    pub(crate) fn new(uring: Arc<Uring>, ring: Rc<Mmap>, offset: io_cqring_offsets) -> Self {
+    pub(crate) fn new(uring: Arc<Uring>, ring: Arc<Mmap>, offset: io_cqring_offsets) -> Self {
         unsafe {
             Self {
                 uring,
