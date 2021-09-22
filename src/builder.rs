@@ -1,17 +1,19 @@
 use std::io;
+use std::sync::Arc;
 
-use crate::queue::{self, cq::Cq, sq::Sq};
+use crate::queue::{self, Cq, Sq};
 use crate::sys::{self, io_uring_params};
 use crate::Uring;
 
-/// [`Uring`] factory, which can be used in order to configure the properties
-/// of a new [`Uring`].
+/// io_uring factory, which can be used in order to configure the properties of
+/// a new io_uring instance.
 ///
-/// Methods can be chained on it in order to configure it.
-/// The [`Uring`] is constructed by calling [`build`].
-/// The [`Uring::new`] methods are aliases for default options using this builder.
+/// Methods can be chained on it in order to configure it. The [`Sq`] and [`Cq`]
+/// are constructed by calling [`build`]. The [`urio::new`] methods are aliases
+/// for default options using this builder.
 ///
 /// [`build`]: method@Self::build
+/// [`urio::new`]: function@crate::new
 pub struct Builder {
     entries: u32,
     p: io_uring_params,
@@ -20,8 +22,8 @@ pub struct Builder {
 impl Builder {
     /// Create a new [`Builder`] with given `entries` entries.
     ///
-    /// `entries` denote the number of sqes and it must be a power of 2,
-    /// in the range `1..=4096`
+    /// `entries` denote the number of sqes and it must be a power of 2, in the
+    /// range `1..=4096`
     pub fn new(entries: u32) -> Self {
         Self {
             entries,
@@ -29,8 +31,8 @@ impl Builder {
         }
     }
 
-    /// Build the configured [`Uring`].
-    pub fn build(&mut self) -> io::Result<Uring> {
+    /// Build the configured [`Sq`] and [`Cq`].
+    pub fn build(&mut self) -> io::Result<(Sq, Cq)> {
         let fd = unsafe { sys::io_uring_setup(self.entries, &mut self.p) };
         if fd < 0 {
             return Err(io::Error::last_os_error());
@@ -42,13 +44,15 @@ impl Builder {
                 Err(err)
             },
             |(sqring, cqring, sqes)| {
-                Ok(Uring {
+                let uring = Arc::new(Uring {
                     fd,
-                    sq: Sq::new(sqring, self.p.sq_off, sqes),
-                    cq: Cq::new(cqring, self.p.cq_off),
                     flags: self.p.flags,
                     features: self.p.features,
-                })
+                });
+                Ok((
+                    Sq::new(Arc::clone(&uring), sqring, self.p.sq_off, sqes),
+                    Cq::new(Arc::clone(&uring), cqring, self.p.cq_off),
+                ))
             },
         )
     }

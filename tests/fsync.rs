@@ -1,19 +1,19 @@
 use std::{error::Error, os::unix::io::AsRawFd};
 
-use urio::{op::FsyncFlags, Uring};
+use urio::op::FsyncFlags;
 
 #[test]
 fn fsync_single() -> Result<(), Box<dyn Error>> {
-    let mut ring = Uring::new(8)?;
+    let (mut sq, mut cq) = urio::new(8)?;
 
     let tmpfile = tempfile::tempfile()?;
-    ring.alloc_sqe()?
+    sq.alloc_sqe()?
         .packup_fsync(tmpfile.as_raw_fd(), FsyncFlags::DATASYNC);
 
-    let submitted = ring.submit_and_wait(1)?;
+    let submitted = sq.submit_and_wait(1)?;
     assert!(submitted == 1);
 
-    ring.reap_cqe()?;
+    cq.reap_cqe()?;
 
     Ok(())
 }

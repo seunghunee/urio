@@ -1,5 +1,9 @@
 pub mod cq;
+pub use cq::{Cq, Reaper};
+
 pub mod sq;
+pub use sq::Sq;
+
 mod util;
 
 use std::{io, mem, rc::Rc};

@@ -1,20 +1,25 @@
 use std::{
     rc::Rc,
-    sync::atomic::{
-        AtomicU32,
-        Ordering::{Acquire, Release},
+    sync::{
+        atomic::{
+            AtomicU32,
+            Ordering::{Acquire, Release},
+        },
+        Arc,
     },
 };
 
 use crate::{
     sys::{io_cqring_offsets, io_uring_cqe},
-    Cqe,
+    Cqe, Uring,
 };
 
 use super::util::Mmap;
 
-// Completion Queue.
+/// Completion Queue.
 pub struct Cq {
+    uring: Arc<Uring>,
+
     head: *const AtomicU32,
     tail: *const AtomicU32,
     ring_mask: *const u32,
@@ -26,9 +31,11 @@ pub struct Cq {
 }
 
 impl Cq {
-    pub(crate) fn new(ring: Rc<Mmap>, offset: io_cqring_offsets) -> Self {
+    pub(crate) fn new(uring: Arc<Uring>, ring: Rc<Mmap>, offset: io_cqring_offsets) -> Self {
         unsafe {
             Self {
+                uring,
+
                 head: ring.add(offset.head as _) as _,
                 tail: ring.add(offset.tail as _) as _,
                 ring_mask: ring.add(offset.ring_mask as _) as _,
@@ -45,7 +52,27 @@ impl Cq {
         }
     }
 
-    pub fn reap(&mut self, want: usize) -> Result<Reaper, &'static str> {
+    /// Reap a CQE(Completion Queue Event). Returns a new [`Cqe`].
+    ///
+    /// # Errors
+    ///
+    /// If the CQ(Completion Queue) is empty, then an error is returned.
+    #[inline]
+    pub fn reap_cqe(&mut self) -> Result<Cqe, &'static str> {
+        Ok(self.reap_cqes(1)?.next().unwrap())
+    }
+
+    /// Like [`reap_cqe`], but it reaps the exact `want` CQEs. Returns a
+    /// [`Reaper`].
+    ///
+    /// # Errors
+    ///
+    /// If CQEs in the CQ(Completion Queue) is less than `want`, then an error
+    /// is returned.
+    ///
+    /// [`reap_cqe`]: method@Self::reap_cqe
+    #[inline]
+    pub fn reap_cqes(&mut self, want: usize) -> Result<Reaper, &'static str> {
         if self.len() < want {
             return Err("Failed to get cqes as much as you want");
         }

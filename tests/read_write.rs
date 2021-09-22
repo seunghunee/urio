@@ -4,8 +4,6 @@ use std::{
     os::unix::io::AsRawFd,
 };
 
-use urio::Uring;
-
 const TEXT: &[u8] = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu ultricies
 turpis, eget dapibus elit. Nulla auctor eget metus eget maximus. Nam diam
 sapien, vestibulum vitae libero nec, faucibus venenatis augue. Nulla
@@ -24,23 +22,20 @@ sapien. Donec vitae scelerisque eros.";
 
 #[test]
 fn read_vectored() -> Result<(), Box<dyn Error>> {
-    let mut ring = Uring::new(8)?;
+    let (mut sq, mut cq) = urio::new(8)?;
 
     let mut tmpfile = tempfile::tempfile()?;
     tmpfile.write_all(&TEXT)?;
     tmpfile.flush()?;
 
     let mut buf = [0; 4096];
-    ring.alloc_sqe()?.packup_read_vectored(
-        tmpfile.as_raw_fd(),
-        &mut [IoSliceMut::new(&mut buf)],
-        0,
-    );
+    sq.alloc_sqe()?
+        .packup_read_vectored(tmpfile.as_raw_fd(), &mut [IoSliceMut::new(&mut buf)], 0);
 
-    let submitted = ring.submit_and_wait(1)?;
+    let submitted = sq.submit_and_wait(1)?;
     assert!(submitted == 1);
 
-    let cqe = ring.reap_cqe()?;
+    let cqe = cq.reap_cqe()?;
     let len = cqe.result()? as _;
     assert_eq!(len, TEXT.len());
     assert_eq!(&buf[..len], &TEXT[..len]);
@@ -50,17 +45,17 @@ fn read_vectored() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn write_vectored() -> Result<(), Box<dyn Error>> {
-    let mut ring = Uring::new(8)?;
+    let (mut sq, mut cq) = urio::new(8)?;
 
     let mut tmpfile = tempfile::tempfile()?;
 
-    ring.alloc_sqe()?
+    sq.alloc_sqe()?
         .packup_write_vectored(tmpfile.as_raw_fd(), &[IoSlice::new(TEXT)], 0);
 
-    let submitted = ring.submit_and_wait(1)?;
+    let submitted = sq.submit_and_wait(1)?;
     assert!(submitted == 1);
 
-    let cqe = ring.reap_cqe()?;
+    let cqe = cq.reap_cqe()?;
     let len = cqe.result()? as _;
     assert_eq!(len, TEXT.len());
 
