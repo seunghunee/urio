@@ -1,8 +1,5 @@
 use std::sync::{
-    atomic::{
-        AtomicU32,
-        Ordering::{Acquire, Release},
-    },
+    atomic::{AtomicU32, Ordering},
     Arc,
 };
 
@@ -92,7 +89,7 @@ impl Cq {
     #[inline]
     pub fn len(&self) -> usize {
         (unsafe {
-            let tail = (*self.tail).load(Acquire);
+            let tail = (*self.tail).load(Ordering::Acquire);
             let head = *(self.head as *const u32);
             tail.wrapping_sub(head)
         }) as _
@@ -134,7 +131,7 @@ impl Drop for Reaper<'_> {
     fn drop(&mut self) {
         unsafe {
             let head = *(self.cq.head as *const u32);
-            (*self.cq.head).store(head.wrapping_add(self.len), Release);
+            (*self.cq.head).store(head.wrapping_add(self.len), Ordering::Release);
         }
     }
 }

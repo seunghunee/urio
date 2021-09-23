@@ -3,7 +3,7 @@ use std::{
     ops::Deref,
     ptr,
     sync::{
-        atomic::{AtomicU32, Ordering::Acquire, Ordering::Relaxed, Ordering::Release},
+        atomic::{AtomicU32, Ordering},
         Arc,
     },
 };
@@ -76,7 +76,7 @@ impl Sq {
     /// If the SQ is full, then an error is returned.
     pub fn alloc_sqe(&mut self) -> Result<Packer, &'static str> {
         unsafe {
-            let head = (*self.head).load(Acquire);
+            let head = (*self.head).load(Ordering::Acquire);
             let next = self.sqe_tail.wrapping_add(1);
 
             if next.wrapping_sub(head) <= *self.ring_entries {
@@ -107,7 +107,7 @@ impl Sq {
                     tail = tail.wrapping_add(1);
                     self.sqe_head = self.sqe_head.wrapping_add(1);
                 }
-                (*self.tail).store(tail, Release);
+                (*self.tail).store(tail, Ordering::Release);
             }
 
             // Loading head without `Acquire` is ok. There's no race.
@@ -161,13 +161,13 @@ impl Sq {
     /// when it has been idle for a while.
     #[inline]
     pub fn needs_wakeup(&self) -> bool {
-        unsafe { (*self.flags).load(Relaxed) & IORING_SQ_NEED_WAKEUP != 0 }
+        unsafe { (*self.flags).load(Ordering::Relaxed) & IORING_SQ_NEED_WAKEUP != 0 }
     }
 
     /// Returns `true` if the CQ(Completion Queue) ring is overflown.
     #[inline]
     pub fn is_cq_overflown(&self) -> bool {
-        unsafe { (*self.flags).load(Relaxed) & IORING_SQ_CQ_OVERFLOW != 0 }
+        unsafe { (*self.flags).load(Ordering::Relaxed) & IORING_SQ_CQ_OVERFLOW != 0 }
     }
 }
 
