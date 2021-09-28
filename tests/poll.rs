@@ -1,23 +1,20 @@
 use std::{
     error::Error,
     io::Write,
-    net::{TcpListener, TcpStream},
-    os::unix::io::AsRawFd,
+    os::unix::{io::AsRawFd, net::UnixStream},
 };
 
 use urio::op::PollEvent;
 
 #[test]
-fn poll_add_socket() -> Result<(), Box<dyn Error>> {
+fn poll_add_stream() -> Result<(), Box<dyn Error>> {
     let (mut sq, mut cq, _) = urio::new(1)?;
+    let (mut tx, rx) = UnixStream::pair()?;
 
-    let listener = TcpListener::bind("127.0.0.1:0")?;
     sq.alloc_sqe()?
-        .packup_poll_add(listener.as_raw_fd(), PollEvent::IN);
+        .packup_poll_add(rx.as_raw_fd(), PollEvent::IN);
 
-    let addr = listener.local_addr()?;
-    let mut stream = TcpStream::connect(addr).unwrap();
-    stream.write_all(b"ping").unwrap();
+    tx.write_all(b"ping")?;
 
     let submitted = sq.submit_and_wait(1)?;
     assert!(submitted > 0);
