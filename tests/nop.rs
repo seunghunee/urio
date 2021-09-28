@@ -2,7 +2,7 @@ use std::error::Error;
 
 #[test]
 fn nop_single() -> Result<(), Box<dyn Error>> {
-    let (mut sq, mut cq) = urio::new(8)?;
+    let (mut sq, mut cq, _) = urio::new(8)?;
 
     sq.alloc_sqe()?.packup_nop();
 

@@ -9,7 +9,7 @@ use urio::op::PollEvent;
 
 #[test]
 fn poll_add_socket() -> Result<(), Box<dyn Error>> {
-    let (mut sq, mut cq) = urio::new(1)?;
+    let (mut sq, mut cq, _) = urio::new(1)?;
 
     let listener = TcpListener::bind("127.0.0.1:0")?;
     sq.alloc_sqe()?
@@ -30,7 +30,7 @@ fn poll_add_socket() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn poll_add_ring() -> Result<(), Box<dyn Error>> {
-    let (mut sq, _) = urio::new(1)?;
+    let (mut sq, ..) = urio::new(1)?;
 
     let ring_fd = sq.uring().as_raw_fd();
     sq.alloc_sqe()?.packup_poll_add(ring_fd, PollEvent::IN);

@@ -2,7 +2,7 @@ use std::os::unix::io::AsRawFd;
 use std::{error::Error, fs::File, io::IoSlice};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let (mut sq, mut cq) = urio::new(8)?;
+    let (mut sq, mut cq, _) = urio::new(8)?;
     let file = File::create("hello.txt")?;
 
     let message = b"Hello, urio!";

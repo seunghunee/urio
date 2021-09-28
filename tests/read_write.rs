@@ -22,7 +22,7 @@ sapien. Donec vitae scelerisque eros.";
 
 #[test]
 fn read_vectored() -> Result<(), Box<dyn Error>> {
-    let (mut sq, mut cq) = urio::new(8)?;
+    let (mut sq, mut cq, _) = urio::new(8)?;
 
     let mut tmpfile = tempfile::tempfile()?;
     tmpfile.write_all(&TEXT)?;
@@ -45,7 +45,7 @@ fn read_vectored() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn write_vectored() -> Result<(), Box<dyn Error>> {
-    let (mut sq, mut cq) = urio::new(8)?;
+    let (mut sq, mut cq, _) = urio::new(8)?;
 
     let mut tmpfile = tempfile::tempfile()?;
 

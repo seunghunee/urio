@@ -1,16 +1,19 @@
 use std::io;
 use std::sync::Arc;
 
-use crate::queue::{self, Cq, Sq};
-use crate::sys::{self, io_uring_params};
-use crate::Uring;
+use crate::{
+    queue::{self, Cq, Sq},
+    register::Registrar,
+    sys::{self, io_uring_params},
+    Uring,
+};
 
 /// io_uring factory, which can be used in order to configure the properties of
 /// a new io_uring instance.
 ///
-/// Methods can be chained on it in order to configure it. The [`Sq`] and [`Cq`]
-/// are constructed by calling [`build`]. The [`urio::new`] methods are aliases
-/// for default options using this builder.
+/// Methods can be chained on it in order to configure it. The [`Sq`], [`Cq`]
+/// and [`Registrar`] are constructed by calling [`build`]. The [`urio::new`]
+/// methods are aliases for default options using this builder.
 ///
 /// [`build`]: method@Self::build
 /// [`urio::new`]: function@crate::new
@@ -31,8 +34,8 @@ impl Builder {
         }
     }
 
-    /// Build the configured [`Sq`] and [`Cq`].
-    pub fn build(&mut self) -> io::Result<(Sq, Cq)> {
+    /// Build the configured [`Sq`], [`Cq`] and [`Registrar`].
+    pub fn build(&mut self) -> io::Result<(Sq, Cq, Registrar)> {
         let fd = unsafe { sys::io_uring_setup(self.entries, &mut self.p) };
         if fd < 0 {
             return Err(io::Error::last_os_error());
@@ -52,6 +55,7 @@ impl Builder {
                 Ok((
                     Sq::new(Arc::clone(&uring), sqring, self.p.sq_off, sqes),
                     Cq::new(Arc::clone(&uring), cqring, self.p.cq_off),
+                    Registrar::new(Arc::clone(&uring)),
                 ))
             },
         )

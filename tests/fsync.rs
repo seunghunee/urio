@@ -4,7 +4,7 @@ use urio::op::FsyncFlags;
 
 #[test]
 fn fsync_single() -> Result<(), Box<dyn Error>> {
-    let (mut sq, mut cq) = urio::new(8)?;
+    let (mut sq, mut cq, _) = urio::new(8)?;
 
     let tmpfile = tempfile::tempfile()?;
     sq.alloc_sqe()?

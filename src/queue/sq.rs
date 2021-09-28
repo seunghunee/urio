@@ -176,7 +176,7 @@ mod tests {
     #[test]
     fn alloc_sqe_full_sq() {
         const NUM_ENTRIES: u32 = 16;
-        let (mut sq, _) = crate::new(NUM_ENTRIES).expect("Failed to setup ring");
+        let (mut sq, _, _) = crate::new(NUM_ENTRIES).expect("Failed to setup ring");
         let mut num = 0;
         while let Ok(_builder) = sq.alloc_sqe() {
             num += 1;

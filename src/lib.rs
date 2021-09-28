@@ -12,6 +12,8 @@ pub use op::{cqe::Cqe, sqe::Packer};
 mod queue;
 pub use queue::{Cq, Reaper, Sq};
 
+mod register;
+
 mod sys;
 
 use std::{
@@ -19,16 +21,18 @@ use std::{
     os::unix::io::{AsRawFd, RawFd},
 };
 
+use register::Registrar;
 use sys::{IORING_SETUP_IOPOLL, IORING_SETUP_SQPOLL};
 
 /// Create a new io_uring instance with given `entries` entries and default
-/// configuration values. On success, [`Sq`] and [`Cq`] will be returned.
+/// configuration values. On success, [`Sq`], [`Cq`] and [`Registrar`] will be
+/// returned.
 ///
 /// `entries` denote the number of sqes and it must be a power of 2, in the
 /// range `1..=4096`
 ///
 /// See the [`Builder`] for more details on configuration options.
-pub fn new(entries: u32) -> io::Result<(Sq, Cq)> {
+pub fn new(entries: u32) -> io::Result<(Sq, Cq, Registrar)> {
     Builder::new(entries).build()
 }
 
