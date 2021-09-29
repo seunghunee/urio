@@ -13,6 +13,7 @@ mod queue;
 pub use queue::{Cq, Reaper, Sq};
 
 mod register;
+pub use register::Registrar;
 
 mod sys;
 
@@ -21,7 +22,6 @@ use std::{
     os::unix::io::{AsRawFd, RawFd},
 };
 
-use register::Registrar;
 use sys::{IORING_SETUP_IOPOLL, IORING_SETUP_SQPOLL};
 
 /// Create a new io_uring instance with given `entries` entries and default
