@@ -65,3 +65,26 @@ fn write_vectored() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn write_fixed() -> Result<(), Box<dyn Error>> {
+    let (mut sq, mut cq, rgstr) = urio::new(8)?;
+
+    let mut tmpfile = tempfile::tempfile()?;
+    let mut buf = Vec::from(TEXT);
+    rgstr.register_buffers(&[IoSlice::new(&buf)])?;
+    sq.alloc_sqe()?
+        .packup_write_fixed(tmpfile.as_raw_fd(), &buf, 0, 0);
+
+    let submitted = sq.submit_and_wait(1)?;
+    assert_eq!(submitted, 1);
+
+    let len = cq.reap_cqe()?.result()? as _;
+    assert_eq!(len, TEXT.len());
+
+    buf.clear();
+    tmpfile.read_to_end(&mut buf)?;
+    assert_eq!(&buf[..len], &TEXT[..len]);
+
+    Ok(())
+}
