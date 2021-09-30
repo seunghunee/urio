@@ -98,9 +98,18 @@ impl<'a> Packer<'a> {
         self.0.__bindgen_anon_3.fsync_flags = flags.bits();
     }
 
-    /// Pack up data for the operation that read from pre-mapped buffers `buf`.
+    /// Pack up data for the operation that read from a pre-mapped buffer.
     ///
+    /// This method must be called after [`register_buffers`] is called and
+    /// succeed. Also, it should be set the `buf_index` to the desired buffer
+    /// index. The memory range described by the `buf` must fall within the
+    /// indexed buffer.
     ///
+    /// See [`Registrar`] for details on how to setup a context for fixed reads
+    /// and writes.
+    ///
+    /// [`register_buffers`]:method@crate::Registrar::register_buffers
+    /// [`Registrar`]:struct@crate::Registrar
     #[inline]
     pub fn packup_read_fixed(&mut self, fd: RawFd, buf: &mut [u8], offset: u64, buf_index: u16) {
         self.pack(
@@ -113,9 +122,18 @@ impl<'a> Packer<'a> {
         self.0.__bindgen_anon_4.buf_index = buf_index;
     }
 
-    /// Pack up data for the operation that write to pre-mapped buffers `buf`.
+    /// Pack up data for the operation that write to a pre-mapped buffers.
     ///
+    /// This method must be called after [`register_buffers`] is called and
+    /// succeed. Also, it should be set the `buf_index` to the desired buffer
+    /// index. The memory range described by the `buf` must fall within the
+    /// indexed buffer.
     ///
+    /// See [`Registrar`] for details on how to setup a context for fixed reads
+    /// and writes.
+    ///
+    /// [`register_buffers`]:method@crate::Registrar::register_buffers
+    /// [`Registrar`]:struct@crate::Registrar
     #[inline]
     pub fn packup_write_fixed(&mut self, fd: RawFd, buf: &[u8], offset: u64, buf_index: u16) {
         self.pack(
