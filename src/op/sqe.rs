@@ -45,6 +45,8 @@ impl<'a> Packer<'a> {
     ///
     /// This is useful for testing the performance of the io_uring
     /// implementation it‐self.
+    ///
+    /// **Available since kernel 5.1.**
     #[inline]
     pub fn packup_nop(&mut self) {
         self.pack(IORING_OP_NOP, -1, 0, 0, 0);
@@ -55,6 +57,8 @@ impl<'a> Packer<'a> {
     ///
     /// It's similar to preadv2(2). If the file is not seekable, off must be set
     /// to zero.
+    ///
+    /// **Available since kernel 5.1.**
     #[inline]
     pub fn packup_read_vectored(&mut self, fd: RawFd, bufs: &mut [IoSliceMut<'_>], offset: u64) {
         self.pack(
@@ -71,6 +75,8 @@ impl<'a> Packer<'a> {
     ///
     /// It's similar to pwritev2(2). If the file is not seekable, off must be
     /// set to zero.
+    ///
+    /// **Available since kernel 5.1.**
     #[inline]
     pub fn packup_write_vectored(&mut self, fd: RawFd, bufs: &[IoSlice<'_>], offset: u64) {
         self.pack(
@@ -92,6 +98,8 @@ impl<'a> Packer<'a> {
     /// two operations execute in parallel, so the fsync may complete before the
     /// write is issued to the storage. The same is also true for previously
     /// issued writes that have not completed prior to the fsync.
+    ///
+    /// **Available since kernel 5.1.**
     #[inline]
     pub fn packup_fsync(&mut self, fd: RawFd, flags: FsyncFlags) {
         self.pack(IORING_OP_FSYNC, fd, 0, 0, 0);
@@ -107,6 +115,8 @@ impl<'a> Packer<'a> {
     ///
     /// See [`Registrar`] for details on how to setup a context for fixed reads
     /// and writes.
+    ///
+    /// **Available since kernel 5.1.**
     ///
     /// [`register_buffers`]:method@crate::Registrar::register_buffers
     /// [`Registrar`]:struct@crate::Registrar
@@ -132,6 +142,8 @@ impl<'a> Packer<'a> {
     /// See [`Registrar`] for details on how to setup a context for fixed reads
     /// and writes.
     ///
+    /// **Available since kernel 5.1.**
+    ///
     /// [`register_buffers`]:method@crate::Registrar::register_buffers
     /// [`Registrar`]:struct@crate::Registrar
     #[inline]
@@ -154,6 +166,8 @@ impl<'a> Packer<'a> {
     /// completed, it will have to be resubmitted. This command works like
     /// an async `poll(2)` and the completion event result is the returned
     /// mask of events.
+    ///
+    /// **Available since kernel 5.1.**
     #[inline]
     pub fn packup_poll_add(&mut self, fd: RawFd, events: PollEvent) {
         self.pack(IORING_OP_POLL_ADD, fd, 0, 0, 0);
