@@ -171,6 +171,8 @@ impl Sq {
     }
 }
 
+unsafe impl Send for Sq {}
+
 #[cfg(test)]
 mod tests {
     #[test]

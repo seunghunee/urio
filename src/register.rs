@@ -90,3 +90,5 @@ impl Registrar {
         Ok(())
     }
 }
+
+unsafe impl Send for Registrar {}

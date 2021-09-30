@@ -96,6 +96,8 @@ impl Cq {
     }
 }
 
+unsafe impl Send for Cq {}
+
 /// Reap CQEs(Completion Queue Event).
 pub struct Reaper<'a> {
     cq: &'a mut Cq,
