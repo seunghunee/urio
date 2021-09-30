@@ -11,7 +11,7 @@ fn fsync_single() -> Result<(), Box<dyn Error>> {
         .packup_fsync(tmpfile.as_raw_fd(), FsyncFlags::DATASYNC);
 
     let submitted = sq.submit_and_wait(1)?;
-    assert!(submitted == 1);
+    assert_eq!(submitted, 1);
 
     cq.reap_cqe()?;
 

@@ -33,7 +33,7 @@ fn read_vectored() -> Result<(), Box<dyn Error>> {
         .packup_read_vectored(tmpfile.as_raw_fd(), &mut [IoSliceMut::new(&mut buf)], 0);
 
     let submitted = sq.submit_and_wait(1)?;
-    assert!(submitted == 1);
+    assert_eq!(submitted, 1);
 
     let cqe = cq.reap_cqe()?;
     let len = cqe.result()? as _;
@@ -53,7 +53,7 @@ fn write_vectored() -> Result<(), Box<dyn Error>> {
         .packup_write_vectored(tmpfile.as_raw_fd(), &[IoSlice::new(TEXT)], 0);
 
     let submitted = sq.submit_and_wait(1)?;
-    assert!(submitted == 1);
+    assert_eq!(submitted, 1);
 
     let cqe = cq.reap_cqe()?;
     let len = cqe.result()? as _;

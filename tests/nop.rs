@@ -7,7 +7,7 @@ fn nop_single() -> Result<(), Box<dyn Error>> {
     sq.alloc_sqe()?.packup_nop();
 
     let submitted = sq.submit_and_wait(1)?;
-    assert!(submitted > 0);
+    assert_eq!(submitted, 1);
 
     cq.reap_cqe()?;
 
