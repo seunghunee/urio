@@ -70,3 +70,12 @@ impl AsRawFd for Uring {
         self.fd
     }
 }
+
+#[inline]
+fn resultify(ret: i32) -> io::Result<u32> {
+    if ret < 0 {
+        Err(io::Error::from_raw_os_error(-ret))
+    } else {
+        Ok(ret as u32)
+    }
+}

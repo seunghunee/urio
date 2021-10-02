@@ -4,6 +4,7 @@ use std::sync::Arc;
 use crate::{
     queue::{self, Cq, Sq},
     register::Registrar,
+    resultify,
     sys::{self, io_uring_params},
     Uring,
 };
@@ -37,9 +38,7 @@ impl Builder {
     /// Build the configured [`Sq`], [`Cq`] and [`Registrar`].
     pub fn build(&mut self) -> io::Result<(Sq, Cq, Registrar)> {
         let fd = unsafe { sys::io_uring_setup(self.entries, &mut self.p) };
-        if fd < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        let fd = resultify(fd)? as _;
 
         queue::mmap(fd, &self.p).map_or_else(
             |err| unsafe {

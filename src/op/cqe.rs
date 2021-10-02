@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::sys::io_uring_cqe;
+use crate::{resultify, sys::io_uring_cqe};
 
 /// CQE(Completion Queue Event), which represents a completed IO event.
 ///
@@ -22,10 +22,6 @@ impl Cqe {
 
     #[inline]
     pub fn result(&self) -> io::Result<u32> {
-        if self.0.res < 0 {
-            Err(io::Error::from_raw_os_error(-self.0.res))
-        } else {
-            Ok(self.0.res as _)
-        }
+        resultify(self.0.res)
     }
 }

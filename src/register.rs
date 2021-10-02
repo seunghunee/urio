@@ -5,6 +5,7 @@ use std::{
 };
 
 use crate::{
+    resultify,
     sys::{self, IORING_REGISTER_BUFFERS, IORING_UNREGISTER_BUFFERS},
     Uring,
 };
@@ -69,10 +70,7 @@ impl Registrar {
                 bufs.len() as _,
             )
         };
-        if ret < 0 {
-            return Err(io::Error::last_os_error());
-        }
-
+        resultify(ret)?;
         Ok(())
     }
 
@@ -83,10 +81,7 @@ impl Registrar {
         let ret = unsafe {
             sys::io_uring_register(self.uring.fd, IORING_UNREGISTER_BUFFERS, ptr::null(), 0)
         };
-        if ret < 0 {
-            return Err(io::Error::last_os_error());
-        }
-
+        resultify(ret)?;
         Ok(())
     }
 }

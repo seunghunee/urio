@@ -9,6 +9,7 @@ use std::{
 };
 
 use crate::{
+    resultify,
     sys::{
         self, io_sqring_offsets, io_uring_sqe, IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP,
         IORING_SQ_CQ_OVERFLOW, IORING_SQ_NEED_WAKEUP,
@@ -144,11 +145,7 @@ impl Sq {
         }
 
         let ret = unsafe { sys::enter(self.uring.fd, to_submit, min_complete, flags, ptr::null()) };
-        if ret < 0 {
-            return Err(io::Error::last_os_error());
-        }
-
-        Ok(ret as _)
+        Ok(resultify(ret)? as _)
     }
 
     /// Returns the number of entries the SQ can hold.
