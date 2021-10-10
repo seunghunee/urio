@@ -2,6 +2,18 @@ use std::io;
 
 use crate::{resultify, sys::io_uring_cqe};
 
+pub struct Unpacker {}
+
+impl Unpacker {
+    pub(super) fn id(&self) -> usize {
+        unimplemented!();
+    }
+
+    pub(super) fn unpack(self) {
+        unimplemented!();
+    }
+}
+
 /// CQE(Completion Queue Event), which represents a completed IO event.
 ///
 /// This is added by kernel to CQ(Completion Queue) for each SQE that is
