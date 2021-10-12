@@ -59,6 +59,13 @@ struct Ticket<'a> {
     id: Id,
 }
 
+impl<'a> Ticket<'_> {
+    #[inline]
+    pub(super) fn id(&self) -> Id {
+        self.id
+    }
+}
+
 impl<'a> Drop for Ticket<'a> {
     fn drop(&mut self) {
         self.storage.slots[self.id] = Slot::Vacant;
