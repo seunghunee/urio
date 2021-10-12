@@ -2,15 +2,13 @@ use std::mem;
 
 use crate::Reaper;
 
-use super::cqe::Unpacker;
-
 enum Slot {
     Vacant,
     Reserved,
-    Occupied(Unpacker),
+    Occupied(Box<dyn Unpack>),
 }
 
-type Id = usize;
+pub(super) type Id = usize;
 
 struct UnpackerStorage {
     slots: Vec<Slot>,
@@ -37,7 +35,7 @@ impl UnpackerStorage {
     }
 
     #[inline]
-    fn store(&mut self, unpacker: Unpacker) {
+    fn store(&mut self, unpacker: Box<dyn Unpack>) {
         let id = unpacker.id();
         self.slots[id] = Slot::Occupied(unpacker);
     }
@@ -71,4 +69,9 @@ impl<'a> Drop for Ticket<'a> {
         self.storage.slots[self.id] = Slot::Vacant;
         self.storage.reusable_ids.push(self.id);
     }
+}
+
+pub(super) trait Unpack {
+    fn id(&self) -> Id;
+    fn unpack(self: Box<Self>);
 }
