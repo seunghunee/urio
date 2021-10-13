@@ -10,14 +10,14 @@ enum Slot {
 
 pub(super) type Id = usize;
 
-struct UnpackerStorage {
+pub(crate) struct UnpackerStorage {
     slots: Vec<Slot>,
     reusable_ids: Vec<Id>,
 }
 
 impl UnpackerStorage {
     #[inline]
-    fn with_capacity(capacity: usize) -> Self {
+    pub(crate) fn with_capacity(capacity: usize) -> Self {
         Self {
             slots: Vec::with_capacity(capacity),
             reusable_ids: Vec::with_capacity(capacity),

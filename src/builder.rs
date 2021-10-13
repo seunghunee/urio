@@ -1,7 +1,10 @@
 use std::io;
 use std::sync::Arc;
 
+use parking_lot::Mutex;
+
 use crate::{
+    op::storage::UnpackerStorage,
     queue::{self, Cq, Sq},
     register::Registrar,
     resultify,
@@ -51,9 +54,25 @@ impl Builder {
                     flags: self.p.flags,
                     features: self.p.features,
                 });
+                let cq_capacity =
+                    unsafe { *{ cqring.add(self.p.cq_off.ring_entries as _) as *const u32 } };
+                let storage =
+                    Arc::new(Mutex::new(UnpackerStorage::with_capacity(cq_capacity as _)));
+
                 Ok((
-                    Sq::new(Arc::clone(&uring), sqring, self.p.sq_off, sqes),
-                    Cq::new(Arc::clone(&uring), cqring, self.p.cq_off),
+                    Sq::new(
+                        Arc::clone(&uring),
+                        Arc::clone(&storage),
+                        sqring,
+                        self.p.sq_off,
+                        sqes,
+                    ),
+                    Cq::new(
+                        Arc::clone(&uring),
+                        Arc::clone(&storage),
+                        cqring,
+                        self.p.cq_off,
+                    ),
                     Registrar::new(Arc::clone(&uring)),
                 ))
             },

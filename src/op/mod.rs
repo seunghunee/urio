@@ -2,7 +2,7 @@
 
 pub(super) mod cqe;
 pub(super) mod sqe;
-mod storage;
+pub(super) mod storage;
 
 use bitflags::bitflags;
 

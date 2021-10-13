@@ -1,9 +1,11 @@
+use parking_lot::Mutex;
 use std::sync::{
     atomic::{AtomicU32, Ordering},
     Arc,
 };
 
 use crate::{
+    op::storage::UnpackerStorage,
     sys::{io_cqring_offsets, io_uring_cqe},
     Cqe, Uring,
 };
@@ -13,6 +15,7 @@ use super::util::Mmap;
 /// Completion Queue.
 pub struct Cq {
     uring: Arc<Uring>,
+    storage: Arc<Mutex<UnpackerStorage>>,
 
     head: *const AtomicU32,
     tail: *const AtomicU32,
@@ -25,10 +28,16 @@ pub struct Cq {
 }
 
 impl Cq {
-    pub(crate) fn new(uring: Arc<Uring>, ring: Arc<Mmap>, offset: io_cqring_offsets) -> Self {
+    pub(crate) fn new(
+        uring: Arc<Uring>,
+        storage: Arc<Mutex<UnpackerStorage>>,
+        ring: Arc<Mmap>,
+        offset: io_cqring_offsets,
+    ) -> Self {
         unsafe {
             Self {
                 uring,
+                storage,
 
                 head: ring.add(offset.head as _) as _,
                 tail: ring.add(offset.tail as _) as _,

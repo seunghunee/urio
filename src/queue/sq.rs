@@ -1,3 +1,4 @@
+use parking_lot::Mutex;
 use std::{
     io,
     ops::Deref,
@@ -9,6 +10,7 @@ use std::{
 };
 
 use crate::{
+    op::storage::UnpackerStorage,
     resultify,
     sys::{
         self, io_sqring_offsets, io_uring_sqe, IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP,
@@ -22,6 +24,7 @@ use super::util::Mmap;
 /// Submission Queue.
 pub struct Sq {
     uring: Arc<Uring>,
+    storage: Arc<Mutex<UnpackerStorage>>,
 
     head: *const AtomicU32,
     tail: *mut AtomicU32,
@@ -40,6 +43,7 @@ pub struct Sq {
 impl Sq {
     pub(crate) fn new(
         uring: Arc<Uring>,
+        storage: Arc<Mutex<UnpackerStorage>>,
         ring: Arc<Mmap>,
         offset: io_sqring_offsets,
         sqes: Mmap,
@@ -47,6 +51,7 @@ impl Sq {
         unsafe {
             Self {
                 uring,
+                storage,
 
                 head: ring.add(offset.head as _) as _,
                 tail: ring.add(offset.tail as _) as _,
