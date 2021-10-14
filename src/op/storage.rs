@@ -1,4 +1,5 @@
-use std::mem;
+use parking_lot::Mutex;
+use std::{mem, sync::Arc};
 
 use crate::Reaper;
 
@@ -52,22 +53,23 @@ impl UnpackerStorage {
     }
 }
 
-struct Ticket<'a> {
-    storage: &'a mut UnpackerStorage,
+pub(crate) struct Ticket {
+    storage: Arc<Mutex<UnpackerStorage>>,
     id: Id,
 }
 
-impl<'a> Ticket<'_> {
+impl Ticket {
     #[inline]
     pub(super) fn id(&self) -> Id {
         self.id
     }
 }
 
-impl<'a> Drop for Ticket<'a> {
+impl Drop for Ticket {
     fn drop(&mut self) {
-        self.storage.slots[self.id] = Slot::Vacant;
-        self.storage.reusable_ids.push(self.id);
+        let storage = self.storage.lock();
+        storage.slots[self.id] = Slot::Vacant;
+        storage.reusable_ids.push(self.id);
     }
 }
 
