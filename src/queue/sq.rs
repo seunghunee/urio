@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    op::storage::UnpackerStorage,
+    op::{cqe::Unpacker, storage::UnpackerStorage, Op},
     resultify,
     sys::{
         self, io_sqring_offsets, io_uring_sqe, IORING_ENTER_GETEVENTS, IORING_ENTER_SQ_WAKEUP,
@@ -72,6 +72,17 @@ impl Sq {
     /// Returns the reference to the [`Uring`].
     pub fn uring(&self) -> &Uring {
         &self.uring
+    }
+
+    pub fn new_op<T: 'static>(&mut self, data: T) -> Op<T> {
+        let mut storage = self.storage.lock();
+        let id = storage.issue_id();
+        Op::new(id, data)
+    }
+
+    pub fn push<T: 'static>(&mut self, unpacker: Unpacker<T>) {
+        let mut storage = self.storage.lock();
+        storage.store(Box::new(unpacker));
     }
 
     /// Allocate a vacant SQE(Submission Queue Entry) and push it to the end of

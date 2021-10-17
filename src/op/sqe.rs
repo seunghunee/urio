@@ -1,6 +1,6 @@
 use std::{
     io::{IoSlice, IoSliceMut},
-    os::unix::io::RawFd,
+    os::unix::{io::RawFd, prelude::AsRawFd},
 };
 
 use crate::sys::{
@@ -8,7 +8,7 @@ use crate::sys::{
     IORING_OP_READ_FIXED, IORING_OP_WRITEV, IORING_OP_WRITE_FIXED,
 };
 
-use super::{FsyncFlags, PollEvent};
+use super::{cqe::Unpacker, FsyncFlags, Op, PollEvent, Readv};
 
 /// Pack data into a SQE(Submission Queue Entry).
 pub struct Packer<'a>(&'a mut io_uring_sqe);
@@ -60,14 +60,25 @@ impl<'a> Packer<'a> {
     ///
     /// **Available since kernel 5.1.**
     #[inline]
-    pub fn packup_read_vectored(&mut self, fd: RawFd, bufs: &mut [IoSliceMut<'_>], offset: u64) {
+    pub fn packup_read_vectored(&mut self, op: Op<Readv>) -> Option<Unpacker<Readv>> {
+        let data = op.data;
+        let iovecs: Vec<_> = data
+            .bufs
+            .iter()
+            .map(|buf| libc::iovec {
+                iov_base: buf.as_ptr() as *mut u8 as *mut libc::c_void,
+                iov_len: buf.len(),
+            })
+            .collect();
         self.pack(
             IORING_OP_READV,
-            fd,
-            bufs.as_mut_ptr() as u64,
-            bufs.len() as _,
-            offset,
+            data.file.as_raw_fd(),
+            iovecs.as_ptr() as u64,
+            iovecs.len() as _,
+            data.offset,
         );
+
+        Some(Unpacker::new(op.id, data, op.handler?))
     }
 
     /// Pack up data for the oepration that writes the slice of buffers `bufs`

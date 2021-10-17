@@ -80,12 +80,19 @@ impl Cq {
     ///
     /// [`reap_cqe`]: method@Self::reap_cqe
     #[inline]
-    pub fn reap_cqes(&mut self, want: usize) -> Result<Reaper, &'static str> {
+    pub fn reap_cqes(&self, want: usize) -> Result<Reaper, &'static str> {
         if self.len() < want {
             return Err("Failed to get cqes as much as you want");
         }
 
         Ok(Reaper::new(self, want as _))
+    }
+
+    pub fn unpack_cqes(&mut self, want: usize) -> Result<(), &'static str> {
+        let reaper = self.reap_cqes(want)?;
+        let mut storage = self.storage.lock();
+        storage.release(reaper);
+        Ok(())
     }
 
     /// Returns the number of events the CQ can hold.
@@ -109,13 +116,13 @@ unsafe impl Send for Cq {}
 
 /// Reap CQEs(Completion Queue Event).
 pub struct Reaper<'a> {
-    cq: &'a mut Cq,
+    cq: &'a Cq,
     len: u32,
     reaped: u32,
 }
 
 impl<'a> Reaper<'a> {
-    fn new(cq: &'a mut Cq, len: u32) -> Self {
+    fn new(cq: &'a Cq, len: u32) -> Self {
         Self { cq, len, reaped: 0 }
     }
 }

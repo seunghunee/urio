@@ -13,20 +13,23 @@ impl UnpackerStorage {
     }
 
     #[inline]
-    pub(crate) fn issue_id(&mut self) -> Option<Id> {
+    pub(crate) fn issue_id(&mut self) -> Id {
         self.0
             .iter()
             .position(|slot| slot.is_none())
-            .map(|id| id as _)
+            .unwrap_or_else(|| {
+                self.0.push(None);
+                self.0.len() - 1
+            }) as _
     }
 
     #[inline]
-    fn store(&mut self, unpacker: Box<dyn Unpack>) {
+    pub(crate) fn store(&mut self, unpacker: Box<dyn Unpack>) {
         let id = unpacker.id();
         self.0[id as usize] = Some(unpacker);
     }
 
-    fn release(&mut self, reaper: Reaper) {
+    pub(crate) fn release(&mut self, reaper: Reaper) {
         for cqe in reaper {
             let id = cqe.user_data() as usize;
             let state = mem::replace(&mut self.0[id], None);
@@ -37,7 +40,7 @@ impl UnpackerStorage {
     }
 }
 
-pub(super) trait Unpack {
+pub(crate) trait Unpack {
     fn id(&self) -> Id;
     fn unpack(self: Box<Self>);
 }

@@ -4,9 +4,40 @@ pub(super) mod cqe;
 pub(super) mod sqe;
 pub(super) mod storage;
 
+use std::os::unix::prelude::AsRawFd;
+
 use bitflags::bitflags;
 
 use crate::sys::IORING_FSYNC_DATASYNC;
+
+use self::storage::Id;
+
+pub struct Op<T: 'static> {
+    id: Id,
+    data: T,
+    handler: Option<Box<dyn FnOnce(T)>>,
+}
+
+impl<T: 'static> Op<T> {
+    pub(crate) fn new(id: Id, data: T) -> Self {
+        Self {
+            id,
+            data,
+            handler: None,
+        }
+    }
+
+    pub fn set_handler(mut self, handler: impl FnOnce(T) + 'static) -> Self {
+        self.handler = Some(Box::new(handler));
+        self
+    }
+}
+
+pub struct Readv {
+    pub file: Box<dyn AsRawFd>,
+    pub bufs: Vec<Vec<u8>>,
+    pub offset: u64,
+}
 
 bitflags! {
     /// Synchronized I/O file or data integrity completion.

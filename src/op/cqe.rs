@@ -2,15 +2,28 @@ use std::io;
 
 use crate::{resultify, sys::io_uring_cqe};
 
-pub struct Unpacker {}
+use super::storage::{Id, Unpack};
 
-impl Unpacker {
-    pub(super) fn id(&self) -> usize {
-        unimplemented!();
+pub struct Unpacker<T: 'static> {
+    id: Id,
+    data: T,
+    handler: Box<dyn FnOnce(T)>,
+}
+
+impl<T: 'static> Unpacker<T> {
+    pub(super) fn new(id: Id, data: T, handler: Box<dyn FnOnce(T)>) -> Self {
+        Self { id, data, handler }
+    }
+}
+
+impl<T: 'static> Unpack for Unpacker<T> {
+    #[inline]
+    fn id(&self) -> Id {
+        self.id
     }
 
-    pub(super) fn unpack(self) {
-        unimplemented!();
+    fn unpack(self: Box<Self>) {
+        (self.handler)(self.data)
     }
 }
 
